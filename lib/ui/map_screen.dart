@@ -108,9 +108,8 @@ class _MapScreenState extends State<MapScreen> {
                 _destinationLng = data[2];
 
                 print("d lat: $_destinationLat --- d lng: $_destinationLng");
+                _goToDestination();
               }
-
-              //_goToDestination();
             },
             child: Icon(Icons.search),
             tooltip: "Search",
@@ -122,6 +121,26 @@ class _MapScreenState extends State<MapScreen> {
             child: Icon(Icons.my_location),
             tooltip: "Current location",
           ),
+          SizedBox(height: 5),
+          (_destinationLat != null && _destinationLng != null)
+              ? FloatingActionButton(
+                  heroTag: "Directions",
+                  onPressed: _goToDestination,
+                  child: Icon(Icons.directions),
+                  tooltip: "Destination location",
+                )
+              : Container(),
+          (_destinationLat != null && _destinationLng != null)
+              ? SizedBox(height: 5)
+              : Container(),
+          (_destinationLat != null && _destinationLng != null)
+              ? FloatingActionButton(
+                  heroTag: "Directions car",
+                  onPressed: null, //_getPolyline,
+                  child: Icon(Icons.directions_car),
+                  tooltip: "Get route",
+                )
+              : Container(),
         ],
       ),
     );
@@ -169,5 +188,23 @@ class _MapScreenState extends State<MapScreen> {
         tilt: 0,
       )),
     );
+  }
+
+  Future<void> _goToDestination() async {
+    if (_destinationLat != null && _destinationLng != null) {
+      final GoogleMapController controller = await _controller.future;
+      final currentLatLng = LatLng(_destinationLat, _destinationLng);
+
+      controller.animateCamera(
+        CameraUpdate.newCameraPosition(CameraPosition(
+          target: currentLatLng,
+          zoom: 16,
+          bearing: 90,
+          tilt: 45,
+        )),
+      );
+
+      _mapBloc.setDestinationMarker(_destinationLat, _destinationLng);
+    }
   }
 }

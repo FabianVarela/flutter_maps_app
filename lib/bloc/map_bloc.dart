@@ -27,6 +27,21 @@ class MapBloc implements BaseBloc {
     _markerList.sink.add(_markers);
   }
 
+  void setDestinationMarker(double lat, double lng) {
+    var markerId = MarkerId("destination location");
+    var destinationMarker = Marker(
+      markerId: markerId,
+      position: LatLng(lat, lng),
+      infoWindow: InfoWindow(
+        title: "Destination location",
+        snippet: "Destination place",
+      ),
+    );
+
+    _markers[markerId] = destinationMarker;
+    _markerList.sink.add(_markers);
+  }
+
   /// Override functions
   @override
   void dispose() {
