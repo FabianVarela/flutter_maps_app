@@ -16,6 +16,8 @@ class _MapScreenState extends State<MapScreen> {
   final _geoPositionBloc = GeoPositionBloc();
   final _mapBloc = MapBloc();
 
+  bool _isRoteActivated = false;
+
   /// Google maps
   Completer<GoogleMapController> _controller = Completer();
 
@@ -74,18 +76,32 @@ class _MapScreenState extends State<MapScreen> {
             initialData: {},
             stream: _mapBloc.markerList,
             builder: (context, mapSnapshot) {
-              return GoogleMap(
-                initialCameraPosition: CameraPosition(
-                  target: LatLng(_originLat, _originLng),
-                  zoom: 15,
-                ),
-                onMapCreated: (controller) => _controller.complete(controller),
-                mapType: MapType.normal,
-                myLocationEnabled: true,
-                myLocationButtonEnabled: false,
-                markers: Set<Marker>.of(
-                    mapSnapshot.data.length > 0 ? mapSnapshot.data.values : []),
-              );
+              return StreamBuilder<PolyLineData>(
+                  stream: _mapBloc.polylineData,
+                  builder: (context, polylineSnapshot) {
+                    if (polylineSnapshot.hasData && _isRoteActivated) {
+                      _setFixCamera(polylineSnapshot.data.bounds);
+                    }
+
+                    return GoogleMap(
+                      initialCameraPosition: CameraPosition(
+                        target: LatLng(_originLat, _originLng),
+                        zoom: 15,
+                      ),
+                      onMapCreated: (controller) =>
+                          _controller.complete(controller),
+                      mapType: MapType.normal,
+                      myLocationEnabled: true,
+                      myLocationButtonEnabled: false,
+                      markers: Set<Marker>.of(mapSnapshot.data.length > 0
+                          ? mapSnapshot.data.values
+                          : []),
+                      polylines: Set<Polyline>.of(polylineSnapshot.hasData &&
+                              polylineSnapshot.data.polyLines.length > 0
+                          ? polylineSnapshot.data.polyLines.values
+                          : []),
+                    );
+                  });
             }),
       ),
       floatingActionButton: Column(
@@ -136,7 +152,11 @@ class _MapScreenState extends State<MapScreen> {
           (_destinationLat != null && _destinationLng != null)
               ? FloatingActionButton(
                   heroTag: "Directions car",
-                  onPressed: null, //_getPolyline,
+                  onPressed: () {
+                    _isRoteActivated = true;
+                    _mapBloc.setPolyline(_originLat, _originLng,
+                        _destinationLat, _destinationLng);
+                  },
                   child: Icon(Icons.directions_car),
                   tooltip: "Get route",
                 )
@@ -192,6 +212,8 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> _goToDestination() async {
     if (_destinationLat != null && _destinationLng != null) {
+      _isRoteActivated = false;
+
       final GoogleMapController controller = await _controller.future;
       final currentLatLng = LatLng(_destinationLat, _destinationLng);
 
@@ -206,5 +228,15 @@ class _MapScreenState extends State<MapScreen> {
 
       _mapBloc.setDestinationMarker(_destinationLat, _destinationLng);
     }
+  }
+
+  Future _setFixCamera(bounds) async {
+    final GoogleMapController controller = await _controller.future;
+
+    var southWest = LatLng(bounds.southwest.lat, bounds.southwest.lng);
+    var northEast = LatLng(bounds.northeast.lat, bounds.northeast.lng);
+
+    controller.animateCamera(CameraUpdate.newLatLngBounds(
+        LatLngBounds(southwest: southWest, northeast: northEast), 40));
   }
 }
