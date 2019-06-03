@@ -1,11 +1,9 @@
-import 'dart:io';
-
+import 'package:flutter_maps_bloc/bloc/base_bloc.dart';
+import 'package:flutter_maps_bloc/common/google_api_key.dart';
 import 'package:rxdart/rxdart.dart';
-
-import 'base_bloc.dart';
 import 'package:google_maps_webservice/places.dart';
 
-class SearchPlaceBloc implements BaseBloc {
+class SearchPlaceBloc with GoogleApiKey implements BaseBloc {
   /// Subjects or StreamControllers
   final _placeList = BehaviorSubject<List<PlacesSearchResult>>();
   final _isLoading = BehaviorSubject<bool>();
@@ -19,11 +17,7 @@ class SearchPlaceBloc implements BaseBloc {
   void searchPlace(String value, double lat, double lng) async {
     _isLoading.sink.add(true);
 
-    String apiKey = Platform.isAndroid
-        ? ""
-        : "";
-
-    final places = GoogleMapsPlaces(apiKey: apiKey);
+    final places = GoogleMapsPlaces(apiKey: getApiKey());
     final result = await places.searchByText(
       value,
       location: Location(lat, lng),

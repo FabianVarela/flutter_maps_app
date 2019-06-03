@@ -1,6 +1,5 @@
+import 'package:flutter_maps_bloc/bloc/base_bloc.dart';
 import 'package:rxdart/rxdart.dart';
-
-import 'base_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MapBloc implements BaseBloc {
