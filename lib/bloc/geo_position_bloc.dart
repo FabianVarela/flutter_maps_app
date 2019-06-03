@@ -16,6 +16,7 @@ class GeoPositionBloc implements BaseBloc {
   /// Observables
   Observable<Position> get position => _position.stream;
 
+  /// Functions
   void init() {
     geoLocator.getPositionStream(locationOptions).listen((position) {
       print("${position.latitude}, ${position.longitude}");
@@ -23,6 +24,7 @@ class GeoPositionBloc implements BaseBloc {
     });
   }
 
+  /// Override functions
   @override
   void dispose() {
     _position.close();
