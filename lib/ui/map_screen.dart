@@ -98,14 +98,16 @@ class _MapScreenState extends State<MapScreen> {
               List<dynamic> data = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => SearchPlaceScreen(
-                      lat: _originLat, lng: _originLng),
+                  builder: (context) =>
+                      SearchPlaceScreen(lat: _originLat, lng: _originLng),
                 ),
               );
 
               if (data != null) {
                 _destinationLat = data[1];
                 _destinationLng = data[2];
+
+                print("d lat: $_destinationLat --- d lng: $_destinationLng");
               }
 
               //_goToDestination();
@@ -138,8 +140,10 @@ class _MapScreenState extends State<MapScreen> {
 
   Widget _setLoading() {
     return Scaffold(
-      body: Center(
+      body: Align(
+        alignment: Alignment.center,
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
               "Loading map",

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_maps_bloc/bloc/search_place_bloc.dart';
+import 'package:flutter_maps_bloc/ui/drag_map_screen.dart';
 import 'package:google_maps_webservice/places.dart';
 
 class SearchPlaceScreen extends StatefulWidget {
@@ -15,41 +16,67 @@ class SearchPlaceScreen extends StatefulWidget {
 class _SearchPlaceScreenState extends State<SearchPlaceScreen> {
   final _searchPlaceBloc = SearchPlaceBloc();
 
+  /// Override functions
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: ListView(
-          children: <Widget>[
-            Padding(
-              padding: EdgeInsets.all(8.0),
-              child: TextField(
-                decoration: InputDecoration(hintText: "Type the city"),
-                onChanged: (value) {
-                  _searchPlaceBloc.searchPlace(value, widget.lat, widget.lng);
-                },
-              ),
-            ),
-            SizedBox(height: 20),
-            StreamBuilder<bool>(
-              stream: _searchPlaceBloc.isLoading,
-              builder: (context, loadingSnapshot) {
-                if (loadingSnapshot.hasData) {
-                  if (loadingSnapshot.data)
-                    return Center(child: CircularProgressIndicator());
-                  else
-                    return _buildPlaceList();
-                } else {
-                  return Container();
-                }
+      appBar: AppBar(
+        title: Text("Search address"),
+        centerTitle: true,
+      ),
+      body: ListView(
+        children: <Widget>[
+          Padding(
+            padding: EdgeInsets.all(8.0),
+            child: TextField(
+              decoration: InputDecoration(hintText: "Type the city"),
+              onChanged: (value) {
+                _searchPlaceBloc.searchPlace(value, widget.lat, widget.lng);
               },
             ),
-          ],
-        ),
+          ),
+          SizedBox(height: 20),
+          StreamBuilder<bool>(
+            stream: _searchPlaceBloc.isLoading,
+            builder: (context, loadingSnapshot) {
+              if (loadingSnapshot.hasData) {
+                if (loadingSnapshot.data)
+                  return Center(child: CircularProgressIndicator());
+                else
+                  return _buildPlaceList();
+              } else {
+                return Container();
+              }
+            },
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        heroTag: "Place Map",
+        onPressed: () async {
+          final destinationResult = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  DragMapScreen(lat: widget.lat, lng: widget.lng),
+            ),
+          );
+
+          if (destinationResult != null) {
+            _returnToMapScreen(
+              destinationResult.formattedAddress,
+              destinationResult.latitude,
+              destinationResult.longitude,
+            );
+          }
+        },
+        child: Icon(Icons.person_pin_circle),
+        tooltip: "Get destination from map",
       ),
     );
   }
 
+  /// Widget functions
   Widget _buildPlaceList() {
     return StreamBuilder<List<PlacesSearchResult>>(
       stream: _searchPlaceBloc.placeList,
@@ -69,14 +96,10 @@ class _SearchPlaceScreenState extends State<SearchPlaceScreen> {
                   onTap: () {
                     FocusScope.of(context).requestFocus(new FocusNode());
 
-                    List<dynamic> data = [];
-
-                    data.add(places[index].formattedAddress);
-                    data.add(places[index].geometry.location.lat);
-                    data.add(places[index].geometry.location.lng);
-
-                    Future.delayed(Duration(seconds: 2),
-                        () => Navigator.pop(context, data));
+                    _returnToMapScreen(
+                        places[index].formattedAddress,
+                        places[index].geometry.location.lat,
+                        places[index].geometry.location.lng);
                   },
                 );
               },
@@ -89,5 +112,16 @@ class _SearchPlaceScreenState extends State<SearchPlaceScreen> {
         }
       },
     );
+  }
+
+  /// Functions
+  void _returnToMapScreen(String address, double lat, double lng) {
+    List<dynamic> data = [];
+
+    data.add(address);
+    data.add(lat);
+    data.add(lng);
+
+    Navigator.pop(context, data);
   }
 }
