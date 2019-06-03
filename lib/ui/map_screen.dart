@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_maps_bloc/bloc/geo_position_bloc.dart';
 import 'package:flutter_maps_bloc/bloc/map_bloc.dart';
+import 'package:flutter_maps_bloc/ui/search_place_screen.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -18,9 +19,13 @@ class _MapScreenState extends State<MapScreen> {
   /// Google maps
   Completer<GoogleMapController> _controller = Completer();
 
-  /// Position and marker origin
+  /// Position origin
   double _originLat;
   double _originLng;
+
+  /// Position destination
+  double _destinationLat;
+  double _destinationLng;
 
   /// Override functions
   @override
@@ -88,17 +93,32 @@ class _MapScreenState extends State<MapScreen> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
           FloatingActionButton(
+            heroTag: "Search",
+            onPressed: () async {
+              List<dynamic> data = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SearchPlaceScreen(
+                      lat: _originLat, lng: _originLng),
+                ),
+              );
+
+              if (data != null) {
+                _destinationLat = data[1];
+                _destinationLng = data[2];
+              }
+
+              //_goToDestination();
+            },
+            child: Icon(Icons.search),
+            tooltip: "Search",
+          ),
+          SizedBox(height: 5),
+          FloatingActionButton(
             heroTag: "Location",
             onPressed: _goToOrigin,
             child: Icon(Icons.my_location),
             tooltip: "Current location",
-          ),
-          SizedBox(height: 5),
-          FloatingActionButton(
-            heroTag: "Directions",
-            onPressed: null, //_goToDestination,
-            child: Icon(Icons.directions),
-            tooltip: "Destination location",
           ),
         ],
       ),
