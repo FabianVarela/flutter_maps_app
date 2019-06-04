@@ -22,6 +22,7 @@ class _DragMapScreenState extends State<DragMapScreen> {
 
   /// Google maps
   Completer<GoogleMapController> _mapController = Completer();
+  GoogleMapController _googleMapController;
 
   /// Override functions
   @override
@@ -109,8 +110,8 @@ class _DragMapScreenState extends State<DragMapScreen> {
     _mapController.complete(controller);
 
     Future.delayed(Duration(seconds: 1), () async {
-      GoogleMapController controller = await _mapController.future;
-      controller.animateCamera(
+      _googleMapController = await _mapController.future;
+      _googleMapController.animateCamera(
         CameraUpdate.newCameraPosition(
           CameraPosition(
             target: _position,

@@ -20,6 +20,7 @@ class _MapScreenState extends State<MapScreen> {
 
   /// Google maps
   Completer<GoogleMapController> _controller = Completer();
+  GoogleMapController _googleMapController;
 
   /// Position origin
   double _originLat;
@@ -198,9 +199,9 @@ class _MapScreenState extends State<MapScreen> {
 
   /// Functions
   Future<void> _goToOrigin() async {
-    final GoogleMapController controller = await _controller.future;
+    _googleMapController = await _controller.future;
 
-    controller.animateCamera(
+    _googleMapController.animateCamera(
       CameraUpdate.newCameraPosition(CameraPosition(
         target: LatLng(_originLat, _originLng),
         zoom: 16,
@@ -213,11 +214,11 @@ class _MapScreenState extends State<MapScreen> {
   Future<void> _goToDestination() async {
     if (_destinationLat != null && _destinationLng != null) {
       _isRoteActivated = false;
+      _googleMapController = await _controller.future;
 
-      final GoogleMapController controller = await _controller.future;
       final currentLatLng = LatLng(_destinationLat, _destinationLng);
 
-      controller.animateCamera(
+      _googleMapController.animateCamera(
         CameraUpdate.newCameraPosition(CameraPosition(
           target: currentLatLng,
           zoom: 16,
@@ -231,12 +232,12 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future _setFixCamera(bounds) async {
-    final GoogleMapController controller = await _controller.future;
+    _googleMapController = await _controller.future;
 
     var southWest = LatLng(bounds.southwest.lat, bounds.southwest.lng);
     var northEast = LatLng(bounds.northeast.lat, bounds.northeast.lng);
 
-    controller.animateCamera(CameraUpdate.newLatLngBounds(
+    _googleMapController.animateCamera(CameraUpdate.newLatLngBounds(
         LatLngBounds(southwest: southWest, northeast: northEast), 40));
   }
 }
