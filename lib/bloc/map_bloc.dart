@@ -13,14 +13,18 @@ class MapBloc with GoogleApiKey, Preferences implements BaseBloc {
   /// Subjects or StreamControllers
   final _mapMode = BehaviorSubject<String>();
   final _markerList = BehaviorSubject<Map<MarkerId, Marker>>();
-  final _polylineData = BehaviorSubject<PolyLineData>();
+  final _polylineList = BehaviorSubject<Map<PolylineId, Polyline>>();
+  final _routeData = BehaviorSubject<RouteData>();
 
   /// Observables
   Observable<String> get mapMode => _mapMode.stream;
 
   Observable<Map<MarkerId, Marker>> get markerList => _markerList.stream;
 
-  Observable<PolyLineData> get polylineData => _polylineData.stream;
+  Observable<Map<PolylineId, Polyline>> get polylineList =>
+      _polylineList.stream;
+
+  Observable<RouteData> get routeData => _routeData.stream;
 
   /// Functions
   void init() async {
@@ -65,33 +69,45 @@ class MapBloc with GoogleApiKey, Preferences implements BaseBloc {
   }
 
   void setPolyline(double originLat, double originLng, double destinationLat,
-      double destinationLng) async {
+      double destinationLng, polylineColor) async {
     final directions = webService.GoogleMapsDirections(apiKey: getApiKey());
     final response = await directions.directionsWithLocation(
-        webService.Location(originLat, originLng),
-        webService.Location(destinationLat, destinationLng));
+      webService.Location(originLat, originLng),
+      webService.Location(destinationLat, destinationLng),
+      travelMode: webService.TravelMode.driving,
+      trafficModel: webService.TrafficModel.pessimistic,
+      departureTime: DateTime.now(),
+    );
 
     final steps = response.routes[0].legs[0].steps;
     final eta = response.routes[0].legs[0].duration.text;
     final km = response.routes[0].legs[0].distance.text;
     final bounds = response.routes[0].bounds;
 
-    steps.asMap().forEach((index, step) {
-      print("start loc $index: ${step.startLocation}");
-      print("end loc $index: ${step.endLocation}");
+    List<LatLng> pointList = List();
+    steps.forEach((step) {
+      webService.Polyline polyline = step.polyline;
+      String points = polyline.points;
 
-      var id = PolylineId('polyline_id_$index');
-
-      _polyLines[id] = Polyline(polylineId: id, points: [
-        LatLng(step.startLocation.lat, step.startLocation.lng),
-        LatLng(step.endLocation.lat, step.endLocation.lng),
-      ]);
+      List<LatLng> singlePolyLine = _decodePolyLine(points);
+      singlePolyLine.forEach((polyLineItem) {
+        pointList.add(polyLineItem);
+      });
     });
+
+    var polyId = PolylineId('polyline');
+    _polyLines[polyId] = Polyline(
+      polylineId: polyId,
+      points: pointList,
+      color: polylineColor,
+      width: 5,
+    );
 
     print("ETA: $eta");
     print("Km: $km");
 
-    _polylineData.sink.add(PolyLineData(_polyLines, bounds, km, eta));
+    _polylineList.sink.add(_polyLines);
+    _routeData.sink.add(RouteData(bounds, km, eta));
   }
 
   void changeMapMode(String mode) async {
@@ -103,20 +119,61 @@ class MapBloc with GoogleApiKey, Preferences implements BaseBloc {
   Future<String> _getFileData(String path) async =>
       await rootBundle.loadString(path);
 
+  List<LatLng> _decodePolyLine(String encoded) {
+    List<LatLng> poly = List();
+
+    int index = 0;
+    int len = encoded.length;
+    int lat = 0;
+    int lng = 0;
+
+    while (index < len) {
+      int b;
+      int shift = 0;
+      int result = 0;
+
+      do {
+        b = encoded.codeUnitAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+
+      int dLat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+      lat += dLat;
+      shift = 0;
+      result = 0;
+
+      do {
+        b = encoded.codeUnitAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+
+      int dLng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+      lng += dLng;
+
+      LatLng p = LatLng(((lat.toDouble() / 1E5)), ((lng.toDouble() / 1E5)));
+
+      poly.add(p);
+    }
+
+    return poly;
+  }
+
   /// Override functions
   @override
   void dispose() {
     _mapMode.close();
     _markerList.close();
-    _polylineData.close();
+    _polylineList.close();
+    _routeData.close();
   }
 }
 
-class PolyLineData {
-  Map<PolylineId, Polyline> polyLines;
+class RouteData {
   webService.Bounds bounds;
   String km;
   String eta;
 
-  PolyLineData(this.polyLines, this.bounds, this.km, this.eta);
+  RouteData(this.bounds, this.km, this.eta);
 }

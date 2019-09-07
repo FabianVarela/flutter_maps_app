@@ -72,14 +72,18 @@ class _MapScreenState extends State<MapScreen> {
         height: MediaQuery.of(context).size.height,
         width: MediaQuery.of(context).size.width,
         child: StreamBuilder<Map<MarkerId, Marker>>(
-            initialData: {},
-            stream: _mapBloc.markerList,
-            builder: (context, mapSnapshot) {
-              return StreamBuilder<PolyLineData>(
-                  stream: _mapBloc.polylineData,
-                  builder: (context, polylineSnapshot) {
+          initialData: {},
+          stream: _mapBloc.markerList,
+          builder: (context, mapSnapshot) {
+            return StreamBuilder<Map<PolylineId, Polyline>>(
+              initialData: {},
+              stream: _mapBloc.polylineList,
+              builder: (context, polylineSnapshot) {
+                return StreamBuilder<RouteData>(
+                  stream: _mapBloc.routeData,
+                  builder: (context, routeSnapshot) {
                     if (polylineSnapshot.hasData && _isRoteActivated) {
-                      _setFixCamera(polylineSnapshot.data.bounds);
+                      _setFixCamera(routeSnapshot.data.bounds);
                     }
 
                     return StreamBuilder<String>(
@@ -103,14 +107,18 @@ class _MapScreenState extends State<MapScreen> {
                               : []),
                           polylines: Set<Polyline>.of(
                               polylineSnapshot.hasData &&
-                                      polylineSnapshot.data.polyLines.length > 0
-                                  ? polylineSnapshot.data.polyLines.values
+                                      polylineSnapshot.data.length > 0
+                                  ? polylineSnapshot.data.values
                                   : []),
                         );
                       },
                     );
-                  });
-            }),
+                  },
+                );
+              },
+            );
+          },
+        ),
       ),
       floatingActionButton: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -169,7 +177,12 @@ class _MapScreenState extends State<MapScreen> {
               onPressed: () {
                 _isRoteActivated = true;
                 _mapBloc.setPolyline(
-                    _originLat, _originLng, _destinationLat, _destinationLng);
+                  _originLat,
+                  _originLng,
+                  _destinationLat,
+                  _destinationLng,
+                  Colors.blue,
+                );
               },
               child: Icon(Icons.directions_car),
               tooltip: "Get route",
