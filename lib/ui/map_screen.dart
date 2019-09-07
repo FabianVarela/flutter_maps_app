@@ -310,6 +310,11 @@ class _MapScreenState extends State<MapScreen> {
                 child: Text('Uber'),
               ),
               SizedBox(height: 5),
+              RaisedButton(
+                onPressed: () => _mapBloc.changeMapMode(''),
+                child: Text('Default'),
+              ),
+              SizedBox(height: 5),
             ],
           ),
         );
