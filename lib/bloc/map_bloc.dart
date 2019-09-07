@@ -1,10 +1,10 @@
 import 'package:flutter_maps_bloc/bloc/base_bloc.dart';
 import 'package:flutter_maps_bloc/common/google_api_key.dart';
 import 'package:flutter_maps_bloc/common/preferences.dart';
+import 'package:flutter_maps_bloc/common/utils.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/directions.dart' as webService;
-import 'package:flutter/services.dart' show rootBundle;
 
 class MapBloc with GoogleApiKey, Preferences implements BaseBloc {
   Map<MarkerId, Marker> _markers = {};
@@ -31,7 +31,7 @@ class MapBloc with GoogleApiKey, Preferences implements BaseBloc {
     final mapMode = await getMapMode();
 
     try {
-      final mapFileData = await _getFileData('assets/$mapMode.json');
+      final mapFileData = await Utils.getFileData('assets/$mapMode.json');
       _mapMode.sink.add(mapFileData);
     } catch (_) {
       _mapMode.sink.add('');
@@ -116,9 +116,6 @@ class MapBloc with GoogleApiKey, Preferences implements BaseBloc {
   }
 
   /// Private methods
-  Future<String> _getFileData(String path) async =>
-      await rootBundle.loadString(path);
-
   List<LatLng> _decodePolyLine(String encoded) {
     List<LatLng> poly = List();
 

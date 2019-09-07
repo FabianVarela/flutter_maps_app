@@ -21,7 +21,6 @@ class _DragMapScreenState extends State<DragMapScreen> {
   LatLng _position;
 
   /// Google maps
-  Completer<GoogleMapController> _mapController = Completer();
   GoogleMapController _googleMapController;
 
   /// Override functions
@@ -30,6 +29,7 @@ class _DragMapScreenState extends State<DragMapScreen> {
     super.initState();
     _position = LatLng(widget.lat, widget.lng);
     _dragMapBloc.getInitialPosition(_position, _markerIdVal());
+    _dragMapBloc.init();
   }
 
   @override
@@ -45,38 +45,47 @@ class _DragMapScreenState extends State<DragMapScreen> {
           initialData: {},
           stream: _dragMapBloc.markerList,
           builder: (context, markerSnapShot) {
-            return StreamBuilder<bool>(
-              initialData: false,
-              stream: _dragMapBloc.isFirstTime,
-              builder: (context, firstTimeSnapshot) {
-                if (markerSnapShot.hasData) {
-                  return GoogleMap(
-                    markers: Set<Marker>.of(markerSnapShot.data.values),
-                    onMapCreated: _onMapCreated,
-                    initialCameraPosition: CameraPosition(
-                      target: _position,
-                      zoom: 12,
-                    ),
-                    myLocationEnabled: true,
-                    onCameraMove: (CameraPosition position) {
-                      if (!firstTimeSnapshot.data) {
-                        if (markerSnapShot.data.length > 0) {
-                          _position = position.target;
-                          _dragMapBloc.dragMarker(_position, _markerIdVal());
-                        }
-                      }
-                    },
-                    onCameraIdle: () {
-                      if (!firstTimeSnapshot.data) {
-                        _dragMapBloc.getAddress(
-                            _position.latitude, _position.longitude);
-                      }
-                    },
-                  );
-                } else {
-                  print("Marker not found");
-                  return Container();
-                }
+            return StreamBuilder<String>(
+              initialData: '',
+              stream: _dragMapBloc.mapMode,
+              builder: (context, mapModeSnapshot) {
+                _setMapMode(mapModeSnapshot.data);
+
+                return StreamBuilder<bool>(
+                  initialData: false,
+                  stream: _dragMapBloc.isFirstTime,
+                  builder: (context, firstTimeSnapshot) {
+                    if (markerSnapShot.hasData) {
+                      return GoogleMap(
+                        markers: Set<Marker>.of(markerSnapShot.data.values),
+                        onMapCreated: _onMapCreated,
+                        initialCameraPosition: CameraPosition(
+                          target: _position,
+                          zoom: 12,
+                        ),
+                        myLocationEnabled: true,
+                        onCameraMove: (CameraPosition position) {
+                          if (!firstTimeSnapshot.data) {
+                            if (markerSnapShot.data.length > 0) {
+                              _position = position.target;
+                              _dragMapBloc.dragMarker(
+                                  _position, _markerIdVal());
+                            }
+                          }
+                        },
+                        onCameraIdle: () {
+                          if (!firstTimeSnapshot.data) {
+                            _dragMapBloc.getAddress(
+                                _position.latitude, _position.longitude);
+                          }
+                        },
+                      );
+                    } else {
+                      print("Marker not found");
+                      return Container();
+                    }
+                  },
+                );
               },
             );
           },
@@ -85,13 +94,16 @@ class _DragMapScreenState extends State<DragMapScreen> {
       floatingActionButton: StreamBuilder(
         stream: _dragMapBloc.dragMapData,
         builder: (context, dragMapDataSnapshot) {
-          return FloatingActionButton(
-            heroTag: "Ok position",
-            onPressed: (dragMapDataSnapshot.hasData)
-                ? () => _setDirection(dragMapDataSnapshot.data)
-                : null,
-            child: Icon(Icons.check),
-            tooltip: "Continue with position",
+          return Padding(
+            padding: EdgeInsets.only(bottom: 100),
+            child: FloatingActionButton(
+              heroTag: "Ok position",
+              onPressed: (dragMapDataSnapshot.hasData)
+                  ? () => _setDirection(dragMapDataSnapshot.data)
+                  : null,
+              child: Icon(Icons.check),
+              tooltip: "Continue with position",
+            ),
           );
         },
       ),
@@ -99,6 +111,11 @@ class _DragMapScreenState extends State<DragMapScreen> {
   }
 
   /// Functions
+  void _setMapMode(String mapMode) {
+    if (_googleMapController != null)
+      _googleMapController.setMapStyle(mapMode.isEmpty ? null : mapMode);
+  }
+
   String _markerIdVal({bool increment = false}) {
     String val = 'marker_id_$_markerIdCounter';
     if (increment) _markerIdCounter++;
@@ -106,11 +123,10 @@ class _DragMapScreenState extends State<DragMapScreen> {
     return val;
   }
 
-  void _onMapCreated(GoogleMapController controller) async {
-    _mapController.complete(controller);
+  void _onMapCreated(GoogleMapController controller) {
+    _googleMapController = controller;
 
     Future.delayed(Duration(seconds: 1), () async {
-      _googleMapController = await _mapController.future;
       _googleMapController.animateCamera(
         CameraUpdate.newCameraPosition(
           CameraPosition(

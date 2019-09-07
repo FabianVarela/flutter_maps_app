@@ -1,15 +1,18 @@
 import 'package:flutter_maps_bloc/bloc/base_bloc.dart';
 import 'package:flutter_maps_bloc/common/google_api_key.dart';
+import 'package:flutter_maps_bloc/common/preferences.dart';
+import 'package:flutter_maps_bloc/common/utils.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/geocoding.dart';
 import 'package:rxdart/rxdart.dart';
 
-class DragMapBloc with GoogleApiKey implements BaseBloc {
+class DragMapBloc with GoogleApiKey, Preferences implements BaseBloc {
   Map<MarkerId, Marker> _markers = {};
 
   /// Subjects or StreamControllers
   final _isFirstTime = BehaviorSubject<bool>();
   final _markerList = BehaviorSubject<Map<MarkerId, Marker>>();
+  final _mapMode = BehaviorSubject<String>();
   final _dragMapData = BehaviorSubject<DragMapData>();
 
   /// Observables
@@ -17,7 +20,20 @@ class DragMapBloc with GoogleApiKey implements BaseBloc {
 
   Observable<Map<MarkerId, Marker>> get markerList => _markerList.stream;
 
+  Observable<String> get mapMode => _mapMode.stream;
+
   Observable<DragMapData> get dragMapData => _dragMapData.stream;
+
+  void init() async {
+    final mapMode = await getMapMode();
+
+    try {
+      final mapFileData = await Utils.getFileData('assets/$mapMode.json');
+      _mapMode.sink.add(mapFileData);
+    } catch (_) {
+      _mapMode.sink.add('');
+    }
+  }
 
   void getInitialPosition(LatLng latLng, String idMarker) {
     _isFirstTime.sink.add(true);
@@ -62,6 +78,7 @@ class DragMapBloc with GoogleApiKey implements BaseBloc {
   void dispose() {
     _markerList.close();
     _isFirstTime.close();
+    _mapMode.close();
     _dragMapData.close();
   }
 }
