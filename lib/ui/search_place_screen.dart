@@ -27,7 +27,7 @@ class _SearchPlaceScreenState extends State<SearchPlaceScreen> {
       body: ListView(
         children: <Widget>[
           Padding(
-            padding: EdgeInsets.all(8.0),
+            padding: EdgeInsets.all(8),
             child: TextField(
               decoration: InputDecoration(hintText: "Type the city"),
               onChanged: (value) {
