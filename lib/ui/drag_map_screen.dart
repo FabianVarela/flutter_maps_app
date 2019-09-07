@@ -33,6 +33,12 @@ class _DragMapScreenState extends State<DragMapScreen> {
   }
 
   @override
+  void dispose() {
+    _dragMapBloc.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     var _width = MediaQuery.of(context).size.width;
     var _height = MediaQuery.of(context).size.height;
