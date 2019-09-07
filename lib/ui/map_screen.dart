@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_maps_bloc/bloc/geo_position_bloc.dart';
 import 'package:flutter_maps_bloc/bloc/map_bloc.dart';
@@ -19,7 +17,6 @@ class _MapScreenState extends State<MapScreen> {
   bool _isRoteActivated = false;
 
   /// Google maps
-  Completer<GoogleMapController> _controller = Completer();
   GoogleMapController _googleMapController;
 
   /// Position origin
@@ -35,6 +32,7 @@ class _MapScreenState extends State<MapScreen> {
   void initState() {
     super.initState();
     _geoPositionBloc.init();
+    _mapBloc.init();
   }
 
   @override
@@ -84,23 +82,32 @@ class _MapScreenState extends State<MapScreen> {
                       _setFixCamera(polylineSnapshot.data.bounds);
                     }
 
-                    return GoogleMap(
-                      initialCameraPosition: CameraPosition(
-                        target: LatLng(_originLat, _originLng),
-                        zoom: 15,
-                      ),
-                      onMapCreated: (controller) =>
-                          _controller.complete(controller),
-                      mapType: MapType.normal,
-                      myLocationEnabled: true,
-                      myLocationButtonEnabled: false,
-                      markers: Set<Marker>.of(mapSnapshot.data.length > 0
-                          ? mapSnapshot.data.values
-                          : []),
-                      polylines: Set<Polyline>.of(polylineSnapshot.hasData &&
-                              polylineSnapshot.data.polyLines.length > 0
-                          ? polylineSnapshot.data.polyLines.values
-                          : []),
+                    return StreamBuilder<String>(
+                      initialData: '',
+                      stream: _mapBloc.mapMode,
+                      builder: (context, mapModeSnapshot) {
+                        _setMapMode(mapModeSnapshot.data);
+
+                        return GoogleMap(
+                          initialCameraPosition: CameraPosition(
+                            target: LatLng(_originLat, _originLng),
+                            zoom: 15,
+                          ),
+                          onMapCreated: _onMapCreated,
+                          mapType: MapType.normal,
+                          myLocationEnabled: true,
+                          myLocationButtonEnabled: false,
+                          mapToolbarEnabled: false,
+                          markers: Set<Marker>.of(mapSnapshot.data.length > 0
+                              ? mapSnapshot.data.values
+                              : []),
+                          polylines: Set<Polyline>.of(
+                              polylineSnapshot.hasData &&
+                                      polylineSnapshot.data.polyLines.length > 0
+                                  ? polylineSnapshot.data.polyLines.values
+                                  : []),
+                        );
+                      },
                     );
                   });
             }),
@@ -108,63 +115,76 @@ class _MapScreenState extends State<MapScreen> {
       floatingActionButton: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisAlignment: MainAxisAlignment.end,
-        children: <Widget>[
-          FloatingActionButton(
-            heroTag: "Search",
-            onPressed: () async {
-              List<dynamic> data = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      SearchPlaceScreen(lat: _originLat, lng: _originLng),
-                ),
-              );
-
-              if (data != null) {
-                _destinationLat = data[1];
-                _destinationLng = data[2];
-
-                print("d lat: $_destinationLat --- d lng: $_destinationLng");
-                _goToDestination();
-              }
-            },
-            child: Icon(Icons.search),
-            tooltip: "Search",
-          ),
-          SizedBox(height: 5),
-          FloatingActionButton(
-            heroTag: "Location",
-            onPressed: _goToOrigin,
-            child: Icon(Icons.my_location),
-            tooltip: "Current location",
-          ),
-          SizedBox(height: 5),
-          (_destinationLat != null && _destinationLng != null)
-              ? FloatingActionButton(
-                  heroTag: "Directions",
-                  onPressed: _goToDestination,
-                  child: Icon(Icons.directions),
-                  tooltip: "Destination location",
-                )
-              : Container(),
-          (_destinationLat != null && _destinationLng != null)
-              ? SizedBox(height: 5)
-              : Container(),
-          (_destinationLat != null && _destinationLng != null)
-              ? FloatingActionButton(
-                  heroTag: "Directions car",
-                  onPressed: () {
-                    _isRoteActivated = true;
-                    _mapBloc.setPolyline(_originLat, _originLng,
-                        _destinationLat, _destinationLng);
-                  },
-                  child: Icon(Icons.directions_car),
-                  tooltip: "Get route",
-                )
-              : Container(),
-        ],
+        children: _setFloatingButtons(),
       ),
     );
+  }
+
+  List<Widget> _setFloatingButtons() {
+    return <Widget>[
+      FloatingActionButton(
+        heroTag: "Search",
+        onPressed: () async {
+          List<dynamic> data = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  SearchPlaceScreen(lat: _originLat, lng: _originLng),
+            ),
+          );
+
+          if (data != null) {
+            _destinationLat = data[1];
+            _destinationLng = data[2];
+
+            print("d lat: $_destinationLat --- d lng: $_destinationLng");
+            _goToDestination();
+          }
+        },
+        child: Icon(Icons.search),
+        tooltip: "Search",
+      ),
+      SizedBox(height: 5),
+      FloatingActionButton(
+        heroTag: "Location",
+        onPressed: _goToOrigin,
+        child: Icon(Icons.my_location),
+        tooltip: "Current location",
+      ),
+      SizedBox(height: 5),
+      (_destinationLat != null && _destinationLng != null)
+          ? FloatingActionButton(
+              heroTag: "Directions",
+              onPressed: _goToDestination,
+              child: Icon(Icons.directions),
+              tooltip: "Destination location",
+            )
+          : Container(),
+      (_destinationLat != null && _destinationLng != null)
+          ? SizedBox(height: 5)
+          : Container(),
+      (_destinationLat != null && _destinationLng != null)
+          ? FloatingActionButton(
+              heroTag: "Directions car",
+              onPressed: () {
+                _isRoteActivated = true;
+                _mapBloc.setPolyline(
+                    _originLat, _originLng, _destinationLat, _destinationLng);
+              },
+              child: Icon(Icons.directions_car),
+              tooltip: "Get route",
+            )
+          : Container(),
+      (_destinationLat != null && _destinationLng != null)
+          ? SizedBox(height: 5)
+          : Container(),
+      FloatingActionButton(
+        heroTag: 'settings',
+        onPressed: _showModalBottomSheet,
+        child: Icon(Icons.settings),
+        tooltip: 'Settings',
+      ),
+    ];
   }
 
   Widget _setError(String text) {
@@ -198,9 +218,15 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   /// Functions
-  Future<void> _goToOrigin() async {
-    _googleMapController = await _controller.future;
+  void _onMapCreated(GoogleMapController controller) =>
+      _googleMapController = controller;
 
+  void _setMapMode(String mapMode) {
+    if (_googleMapController != null)
+      _googleMapController.setMapStyle(mapMode.isEmpty ? null : mapMode);
+  }
+
+  void _goToOrigin() {
     _googleMapController.animateCamera(
       CameraUpdate.newCameraPosition(CameraPosition(
         target: LatLng(_originLat, _originLng),
@@ -211,10 +237,9 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  Future<void> _goToDestination() async {
+  void _goToDestination() {
     if (_destinationLat != null && _destinationLng != null) {
       _isRoteActivated = false;
-      _googleMapController = await _controller.future;
 
       final currentLatLng = LatLng(_destinationLat, _destinationLng);
 
@@ -231,13 +256,51 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  Future _setFixCamera(bounds) async {
-    _googleMapController = await _controller.future;
-
+  void _setFixCamera(bounds) {
     var southWest = LatLng(bounds.southwest.lat, bounds.southwest.lng);
     var northEast = LatLng(bounds.northeast.lat, bounds.northeast.lng);
 
     _googleMapController.animateCamera(CameraUpdate.newLatLngBounds(
         LatLngBounds(southwest: southWest, northeast: northEast), 40));
+  }
+
+  void _showModalBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (builder) {
+        return Container(
+          padding: EdgeInsets.all(40),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Text('Selecciona una opción para el modo del mapa'),
+              SizedBox(height: 10),
+              RaisedButton(
+                onPressed: () => _mapBloc.changeMapMode('night_mode'),
+                child: Text('Night'),
+              ),
+              SizedBox(height: 5),
+              RaisedButton(
+                onPressed: () => _mapBloc.changeMapMode('night_blue_mode'),
+                child: Text('Night Blue'),
+              ),
+              SizedBox(height: 5),
+              RaisedButton(
+                onPressed: () => _mapBloc.changeMapMode('personal_mode'),
+                child: Text('Personal'),
+              ),
+              SizedBox(height: 5),
+              RaisedButton(
+                onPressed: () => _mapBloc.changeMapMode('uber_mode'),
+                child: Text('Uber'),
+              ),
+              SizedBox(height: 5),
+            ],
+          ),
+        );
+      },
+    );
   }
 }

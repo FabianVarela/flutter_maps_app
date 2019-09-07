@@ -1,23 +1,39 @@
 import 'package:flutter_maps_bloc/bloc/base_bloc.dart';
 import 'package:flutter_maps_bloc/common/google_api_key.dart';
+import 'package:flutter_maps_bloc/common/preferences.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/directions.dart' as webService;
+import 'package:flutter/services.dart' show rootBundle;
 
-class MapBloc with GoogleApiKey implements BaseBloc {
+class MapBloc with GoogleApiKey, Preferences implements BaseBloc {
   Map<MarkerId, Marker> _markers = {};
   Map<PolylineId, Polyline> _polyLines = {};
 
   /// Subjects or StreamControllers
+  final _mapMode = BehaviorSubject<String>();
   final _markerList = BehaviorSubject<Map<MarkerId, Marker>>();
   final _polylineData = BehaviorSubject<PolyLineData>();
 
   /// Observables
+  Observable<String> get mapMode => _mapMode.stream;
+
   Observable<Map<MarkerId, Marker>> get markerList => _markerList.stream;
 
   Observable<PolyLineData> get polylineData => _polylineData.stream;
 
   /// Functions
+  void init() async {
+    final mapMode = await getMapMode();
+
+    try {
+      final mapFileData = await _getFileData('assets/$mapMode.json');
+      _mapMode.sink.add(mapFileData);
+    } catch (_) {
+      _mapMode.sink.add('');
+    }
+  }
+
   void setOriginMarkers(double lat, double lng) {
     var markerId = MarkerId("Current location");
     var marker = Marker(
@@ -78,9 +94,19 @@ class MapBloc with GoogleApiKey implements BaseBloc {
     _polylineData.sink.add(PolyLineData(_polyLines, bounds, km, eta));
   }
 
+  void changeMapMode(String mode) async {
+    await saveMapMode(mode);
+    init();
+  }
+
+  /// Private methods
+  Future<String> _getFileData(String path) async =>
+      await rootBundle.loadString(path);
+
   /// Override functions
   @override
   void dispose() {
+    _mapMode.close();
     _markerList.close();
     _polylineData.close();
   }
