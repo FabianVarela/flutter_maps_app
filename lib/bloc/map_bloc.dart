@@ -1,20 +1,27 @@
+import 'dart:ui';
+
 import 'package:flutter_maps_bloc/bloc/base_bloc.dart';
 import 'package:flutter_maps_bloc/common/google_api_key.dart';
 import 'package:flutter_maps_bloc/common/preferences.dart';
 import 'package:flutter_maps_bloc/common/utils.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_maps_webservice/directions.dart' as webService;
+import 'package:google_maps_webservice/directions.dart' as ws;
 
 class MapBloc with GoogleApiKey, Preferences implements BaseBloc {
-  Map<MarkerId, Marker> _markers = {};
-  Map<PolylineId, Polyline> _polyLines = {};
+  Map<MarkerId, Marker> _markers = <MarkerId, Marker>{};
+  Map<PolylineId, Polyline> _polyLines = <PolylineId, Polyline>{};
 
   /// Subjects or StreamControllers
-  final _mapMode = BehaviorSubject<String>();
-  final _markerList = BehaviorSubject<Map<MarkerId, Marker>>();
-  final _polylineList = BehaviorSubject<Map<PolylineId, Polyline>>();
-  final _routeData = BehaviorSubject<RouteData>();
+  final BehaviorSubject<String> _mapMode = BehaviorSubject<String>();
+
+  final BehaviorSubject<Map<MarkerId, Marker>> _markerList =
+      BehaviorSubject<Map<MarkerId, Marker>>();
+
+  final BehaviorSubject<Map<PolylineId, Polyline>> _polylineList =
+      BehaviorSubject<Map<PolylineId, Polyline>>();
+
+  final BehaviorSubject<RouteData> _routeData = BehaviorSubject<RouteData>();
 
   /// Observables
   Observable<String> get mapMode => _mapMode.stream;
@@ -28,10 +35,11 @@ class MapBloc with GoogleApiKey, Preferences implements BaseBloc {
 
   /// Functions
   void init() async {
-    final mapMode = await getMapMode();
+    final String mapMode = await getMapMode();
 
     try {
-      final mapFileData = await Utils.getFileData('assets/$mapMode.json');
+      final String mapFileData =
+          await Utils.getFileData('assets/$mapMode.json');
       _mapMode.sink.add(mapFileData);
     } catch (_) {
       _mapMode.sink.add('');
@@ -39,13 +47,13 @@ class MapBloc with GoogleApiKey, Preferences implements BaseBloc {
   }
 
   void setOriginMarkers(double lat, double lng) {
-    var markerId = MarkerId("Current location");
-    var marker = Marker(
+    final MarkerId markerId = MarkerId('Current location');
+    final Marker marker = Marker(
       markerId: markerId,
       position: LatLng(lat, lng),
       infoWindow: InfoWindow(
-        title: "Current location",
-        snippet: "Current place",
+        title: 'Current location',
+        snippet: 'Current place',
       ),
     );
 
@@ -54,13 +62,13 @@ class MapBloc with GoogleApiKey, Preferences implements BaseBloc {
   }
 
   void setDestinationMarker(double lat, double lng) {
-    var markerId = MarkerId("destination location");
-    var destinationMarker = Marker(
+    final MarkerId markerId = MarkerId('Destination location');
+    final Marker destinationMarker = Marker(
       markerId: markerId,
       position: LatLng(lat, lng),
       infoWindow: InfoWindow(
-        title: "Destination location",
-        snippet: "Destination place",
+        title: 'Destination location',
+        snippet: 'Destination place',
       ),
     );
 
@@ -69,33 +77,35 @@ class MapBloc with GoogleApiKey, Preferences implements BaseBloc {
   }
 
   void setPolyline(double originLat, double originLng, double destinationLat,
-      double destinationLng, polylineColor) async {
-    final directions = webService.GoogleMapsDirections(apiKey: getApiKey());
-    final response = await directions.directionsWithLocation(
-      webService.Location(originLat, originLng),
-      webService.Location(destinationLat, destinationLng),
-      travelMode: webService.TravelMode.driving,
-      trafficModel: webService.TrafficModel.pessimistic,
+      double destinationLng, Color polylineColor) async {
+    final ws.GoogleMapsDirections directions =
+        ws.GoogleMapsDirections(apiKey: getApiKey());
+
+    final ws.DirectionsResponse response =
+        await directions.directionsWithLocation(
+      ws.Location(originLat, originLng),
+      ws.Location(destinationLat, destinationLng),
+      travelMode: ws.TravelMode.driving,
+      trafficModel: ws.TrafficModel.pessimistic,
       departureTime: DateTime.now(),
     );
 
-    final steps = response.routes[0].legs[0].steps;
-    final eta = response.routes[0].legs[0].duration.text;
-    final km = response.routes[0].legs[0].distance.text;
-    final bounds = response.routes[0].bounds;
+    final List<ws.Step> steps = response.routes[0].legs[0].steps;
+    final String eta = response.routes[0].legs[0].duration.text;
+    final String km = response.routes[0].legs[0].distance.text;
+    final ws.Bounds bounds = response.routes[0].bounds;
 
-    List<LatLng> pointList = List();
-    steps.forEach((step) {
-      webService.Polyline polyline = step.polyline;
-      String points = polyline.points;
+    final List<LatLng> pointList = List<LatLng>();
 
-      List<LatLng> singlePolyLine = _decodePolyLine(points);
-      singlePolyLine.forEach((polyLineItem) {
-        pointList.add(polyLineItem);
-      });
+    steps.forEach((ws.Step step) {
+      final ws.Polyline polyline = step.polyline;
+      final String points = polyline.points;
+
+      final List<LatLng> singlePolyLine = _decodePolyLine(points);
+      singlePolyLine.forEach(pointList.add);
     });
 
-    var polyId = PolylineId('polyline');
+    final PolylineId polyId = PolylineId('polyline');
     _polyLines[polyId] = Polyline(
       polylineId: polyId,
       points: pointList,
@@ -103,8 +113,8 @@ class MapBloc with GoogleApiKey, Preferences implements BaseBloc {
       width: 5,
     );
 
-    print("ETA: $eta");
-    print("Km: $km");
+    print('ETA: $eta');
+    print('Km: $km');
 
     _polylineList.sink.add(_polyLines);
     _routeData.sink.add(RouteData(bounds, km, eta));
@@ -117,10 +127,10 @@ class MapBloc with GoogleApiKey, Preferences implements BaseBloc {
 
   /// Private methods
   List<LatLng> _decodePolyLine(String encoded) {
-    List<LatLng> poly = List();
+    final List<LatLng> poly = List<LatLng>();
+    final int len = encoded.length;
 
     int index = 0;
-    int len = encoded.length;
     int lat = 0;
     int lng = 0;
 
@@ -135,7 +145,7 @@ class MapBloc with GoogleApiKey, Preferences implements BaseBloc {
         shift += 5;
       } while (b >= 0x20);
 
-      int dLat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+      final int dLat = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
       lat += dLat;
       shift = 0;
       result = 0;
@@ -146,11 +156,10 @@ class MapBloc with GoogleApiKey, Preferences implements BaseBloc {
         shift += 5;
       } while (b >= 0x20);
 
-      int dLng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+      final int dLng = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
       lng += dLng;
 
-      LatLng p = LatLng(((lat.toDouble() / 1E5)), ((lng.toDouble() / 1E5)));
-
+      final LatLng p = LatLng(lat.toDouble() / 1E5, lng.toDouble() / 1E5);
       poly.add(p);
     }
 
@@ -168,7 +177,7 @@ class MapBloc with GoogleApiKey, Preferences implements BaseBloc {
 }
 
 class RouteData {
-  webService.Bounds bounds;
+  ws.Bounds bounds;
   String km;
   String eta;
 

@@ -4,6 +4,7 @@ import 'package:flutter_maps_bloc/bloc/map_bloc.dart';
 import 'package:flutter_maps_bloc/ui/search_place_screen.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_webservice/directions.dart' as directions;
 
 class MapScreen extends StatefulWidget {
   @override
@@ -11,8 +12,8 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  final _geoPositionBloc = GeoPositionBloc();
-  final _mapBloc = MapBloc();
+  final GeoPositionBloc _geoPositionBloc = GeoPositionBloc();
+  final MapBloc _mapBloc = MapBloc();
 
   bool _isRoteActivated = false;
 
@@ -45,7 +46,8 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     return StreamBuilder<Position>(
       stream: _geoPositionBloc.position,
-      builder: (context, positionSnapShot) {
+      builder:
+          (BuildContext context, AsyncSnapshot<Position> positionSnapShot) {
         if (positionSnapShot.hasData) {
           _originLat = positionSnapShot.data.latitude;
           _originLng = positionSnapShot.data.longitude;
@@ -54,7 +56,7 @@ class _MapScreenState extends State<MapScreen> {
             _mapBloc.setOriginMarkers(_originLat, _originLng);
             return _setFullMap();
           } else {
-            return _setError("Error al obtener la posición");
+            return _setError('Error al obtener la posición');
           }
         } else if (positionSnapShot.hasError) {
           return _setError(positionSnapShot.error);
@@ -72,16 +74,19 @@ class _MapScreenState extends State<MapScreen> {
         height: MediaQuery.of(context).size.height,
         width: MediaQuery.of(context).size.width,
         child: StreamBuilder<Map<MarkerId, Marker>>(
-          initialData: {},
+          initialData: <MarkerId, Marker>{},
           stream: _mapBloc.markerList,
-          builder: (context, mapSnapshot) {
+          builder: (BuildContext context,
+              AsyncSnapshot<Map<MarkerId, Marker>> mapSnapshot) {
             return StreamBuilder<Map<PolylineId, Polyline>>(
-              initialData: {},
+              initialData: <PolylineId, Polyline>{},
               stream: _mapBloc.polylineList,
-              builder: (context, polylineSnapshot) {
+              builder: (BuildContext context,
+                  AsyncSnapshot<Map<PolylineId, Polyline>> polylineSnapshot) {
                 return StreamBuilder<RouteData>(
                   stream: _mapBloc.routeData,
-                  builder: (context, routeSnapshot) {
+                  builder: (BuildContext context,
+                      AsyncSnapshot<RouteData> routeSnapshot) {
                     if (polylineSnapshot.hasData && _isRoteActivated) {
                       _setFixCamera(routeSnapshot.data.bounds);
                     }
@@ -89,7 +94,8 @@ class _MapScreenState extends State<MapScreen> {
                     return StreamBuilder<String>(
                       initialData: '',
                       stream: _mapBloc.mapMode,
-                      builder: (context, mapModeSnapshot) {
+                      builder: (BuildContext context,
+                          AsyncSnapshot<String> mapModeSnapshot) {
                         _setMapMode(mapModeSnapshot.data);
 
                         return GoogleMap(
@@ -102,14 +108,14 @@ class _MapScreenState extends State<MapScreen> {
                           myLocationEnabled: true,
                           myLocationButtonEnabled: false,
                           mapToolbarEnabled: false,
-                          markers: Set<Marker>.of(mapSnapshot.data.length > 0
+                          markers: Set<Marker>.of(mapSnapshot.data.isNotEmpty
                               ? mapSnapshot.data.values
-                              : []),
+                              : <Marker>[]),
                           polylines: Set<Polyline>.of(
                               polylineSnapshot.hasData &&
-                                      polylineSnapshot.data.length > 0
+                                      polylineSnapshot.data.isNotEmpty
                                   ? polylineSnapshot.data.values
-                                  : []),
+                                  : <Polyline>[]),
                         );
                       },
                     );
@@ -131,12 +137,12 @@ class _MapScreenState extends State<MapScreen> {
   List<Widget> _setFloatingButtons() {
     return <Widget>[
       FloatingActionButton(
-        heroTag: "Search",
+        heroTag: 'Search',
         onPressed: () async {
-          List<dynamic> data = await Navigator.push(
+          final List<dynamic> data = await Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) =>
+            MaterialPageRoute<List<dynamic>>(
+              builder: (BuildContext context) =>
                   SearchPlaceScreen(lat: _originLat, lng: _originLng),
             ),
           );
@@ -145,27 +151,27 @@ class _MapScreenState extends State<MapScreen> {
             _destinationLat = data[1];
             _destinationLng = data[2];
 
-            print("d lat: $_destinationLat --- d lng: $_destinationLng");
+            print('d lat: $_destinationLat --- d lng: $_destinationLng');
             _goToDestination();
           }
         },
         child: Icon(Icons.search),
-        tooltip: "Search",
+        tooltip: 'Search',
       ),
       SizedBox(height: 5),
       FloatingActionButton(
-        heroTag: "Location",
+        heroTag: 'Location',
         onPressed: _goToOrigin,
         child: Icon(Icons.my_location),
-        tooltip: "Current location",
+        tooltip: 'Current location',
       ),
       SizedBox(height: 5),
       (_destinationLat != null && _destinationLng != null)
           ? FloatingActionButton(
-              heroTag: "Directions",
+              heroTag: 'Directions',
               onPressed: _goToDestination,
               child: Icon(Icons.directions),
-              tooltip: "Destination location",
+              tooltip: 'Destination location',
             )
           : Container(),
       (_destinationLat != null && _destinationLng != null)
@@ -173,7 +179,7 @@ class _MapScreenState extends State<MapScreen> {
           : Container(),
       (_destinationLat != null && _destinationLng != null)
           ? FloatingActionButton(
-              heroTag: "Directions car",
+              heroTag: 'Directions car',
               onPressed: () {
                 _isRoteActivated = true;
                 _mapBloc.setPolyline(
@@ -185,7 +191,7 @@ class _MapScreenState extends State<MapScreen> {
                 );
               },
               child: Icon(Icons.directions_car),
-              tooltip: "Get route",
+              tooltip: 'Get route',
             )
           : Container(),
       (_destinationLat != null && _destinationLng != null)
@@ -219,7 +225,7 @@ class _MapScreenState extends State<MapScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              "Loading map",
+              'Loading map',
               style: TextStyle(fontSize: 25, color: Colors.blueAccent),
             ),
             SizedBox(height: 20),
@@ -254,7 +260,7 @@ class _MapScreenState extends State<MapScreen> {
     if (_destinationLat != null && _destinationLng != null) {
       _isRoteActivated = false;
 
-      final currentLatLng = LatLng(_destinationLat, _destinationLng);
+      final LatLng currentLatLng = LatLng(_destinationLat, _destinationLng);
 
       _googleMapController.animateCamera(
         CameraUpdate.newCameraPosition(CameraPosition(
@@ -269,9 +275,9 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  void _setFixCamera(bounds) {
-    var southWest = LatLng(bounds.southwest.lat, bounds.southwest.lng);
-    var northEast = LatLng(bounds.northeast.lat, bounds.northeast.lng);
+  void _setFixCamera(directions.Bounds bounds) {
+    final LatLng southWest = LatLng(bounds.southwest.lat, bounds.southwest.lng);
+    final LatLng northEast = LatLng(bounds.northeast.lat, bounds.northeast.lng);
 
     _googleMapController.animateCamera(CameraUpdate.newLatLngBounds(
         LatLngBounds(southwest: southWest, northeast: northEast), 40));
@@ -280,7 +286,7 @@ class _MapScreenState extends State<MapScreen> {
   void _showModalBottomSheet() {
     showModalBottomSheet(
       context: context,
-      builder: (builder) {
+      builder: (BuildContext builder) {
         return Container(
           padding: EdgeInsets.all(40),
           child: Column(

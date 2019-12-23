@@ -7,13 +7,18 @@ import 'package:google_maps_webservice/geocoding.dart';
 import 'package:rxdart/rxdart.dart';
 
 class DragMapBloc with GoogleApiKey, Preferences implements BaseBloc {
-  Map<MarkerId, Marker> _markers = {};
+  Map<MarkerId, Marker> _markers = <MarkerId, Marker>{};
 
   /// Subjects or StreamControllers
-  final _isFirstTime = BehaviorSubject<bool>();
-  final _markerList = BehaviorSubject<Map<MarkerId, Marker>>();
-  final _mapMode = BehaviorSubject<String>();
-  final _dragMapData = BehaviorSubject<DragMapData>();
+  final BehaviorSubject<bool> _isFirstTime = BehaviorSubject<bool>();
+
+  final BehaviorSubject<Map<MarkerId, Marker>> _markerList =
+      BehaviorSubject<Map<MarkerId, Marker>>();
+
+  final BehaviorSubject<String> _mapMode = BehaviorSubject<String>();
+
+  final BehaviorSubject<DragMapData> _dragMapData =
+      BehaviorSubject<DragMapData>();
 
   /// Observables
   Observable<bool> get isFirstTime => _isFirstTime.stream;
@@ -25,10 +30,11 @@ class DragMapBloc with GoogleApiKey, Preferences implements BaseBloc {
   Observable<DragMapData> get dragMapData => _dragMapData.stream;
 
   void init() async {
-    final mapMode = await getMapMode();
+    final String mapMode = await getMapMode();
 
     try {
-      final mapFileData = await Utils.getFileData('assets/$mapMode.json');
+      final String mapFileData =
+          await Utils.getFileData('assets/$mapMode.json');
       _mapMode.sink.add(mapFileData);
     } catch (_) {
       _mapMode.sink.add('');
@@ -38,10 +44,10 @@ class DragMapBloc with GoogleApiKey, Preferences implements BaseBloc {
   void getInitialPosition(LatLng latLng, String idMarker) {
     _isFirstTime.sink.add(true);
 
-    MarkerId markerId = MarkerId(idMarker);
-    LatLng position = latLng;
+    final MarkerId markerId = MarkerId(idMarker);
+    final LatLng position = latLng;
 
-    Marker marker = Marker(
+    final Marker marker = Marker(
       markerId: markerId,
       position: position,
       draggable: false,
@@ -50,24 +56,30 @@ class DragMapBloc with GoogleApiKey, Preferences implements BaseBloc {
     _markers[markerId] = marker;
     _markerList.sink.add(_markers);
 
-    Future.delayed(Duration(seconds: 3), () => _isFirstTime.sink.add(false));
+    Future<dynamic>.delayed(
+      Duration(seconds: 3),
+      () => _isFirstTime.sink.add(false),
+    );
   }
 
   void dragMarker(LatLng latLng, String idMarker) {
-    MarkerId markerId = MarkerId(idMarker);
-    Marker marker = _markers[markerId];
-    Marker updatedMarker = marker.copyWith(positionParam: latLng);
+    final MarkerId markerId = MarkerId(idMarker);
+    final Marker marker = _markers[markerId];
+    final Marker updatedMarker = marker.copyWith(positionParam: latLng);
 
     _markers[markerId] = updatedMarker;
     _markerList.sink.add(_markers);
   }
 
   void getAddress(double lat, double lng) async {
-    final geoCoding = GoogleMapsGeocoding(apiKey: getApiKey());
-    final response = await geoCoding.searchByLocation(Location(lat, lng));
+    final GoogleMapsGeocoding geoCoding =
+        GoogleMapsGeocoding(apiKey: getApiKey());
 
-    if (response.results.length > 0) {
-      var formattedAddress = response.results[0].formattedAddress;
+    final GeocodingResponse response =
+        await geoCoding.searchByLocation(Location(lat, lng));
+
+    if (response.results.isNotEmpty) {
+      final String formattedAddress = response.results[0].formattedAddress;
       _dragMapData.sink.add(DragMapData(lat, lng, formattedAddress));
 
       print(formattedAddress);

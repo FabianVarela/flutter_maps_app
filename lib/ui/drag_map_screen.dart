@@ -15,7 +15,7 @@ class DragMapScreen extends StatefulWidget {
 }
 
 class _DragMapScreenState extends State<DragMapScreen> {
-  final _dragMapBloc = DragMapBloc();
+  final DragMapBloc _dragMapBloc = DragMapBloc();
 
   int _markerIdCounter = 0;
   LatLng _position;
@@ -40,27 +40,30 @@ class _DragMapScreenState extends State<DragMapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var _width = MediaQuery.of(context).size.width;
-    var _height = MediaQuery.of(context).size.height;
+    final double _width = MediaQuery.of(context).size.width;
+    final double _height = MediaQuery.of(context).size.height;
 
     return Scaffold(
       body: Container(
         width: _width,
         height: _height,
         child: StreamBuilder<Map<MarkerId, Marker>>(
-          initialData: {},
+          initialData: <MarkerId, Marker>{},
           stream: _dragMapBloc.markerList,
-          builder: (context, markerSnapShot) {
+          builder: (BuildContext context,
+              AsyncSnapshot<Map<MarkerId, Marker>> markerSnapShot) {
             return StreamBuilder<String>(
               initialData: '',
               stream: _dragMapBloc.mapMode,
-              builder: (context, mapModeSnapshot) {
+              builder: (BuildContext context,
+                  AsyncSnapshot<String> mapModeSnapshot) {
                 _setMapMode(mapModeSnapshot.data);
 
                 return StreamBuilder<bool>(
                   initialData: false,
                   stream: _dragMapBloc.isFirstTime,
-                  builder: (context, firstTimeSnapshot) {
+                  builder: (BuildContext context,
+                      AsyncSnapshot<bool> firstTimeSnapshot) {
                     if (markerSnapShot.hasData) {
                       return GoogleMap(
                         markers: Set<Marker>.of(markerSnapShot.data.values),
@@ -72,7 +75,7 @@ class _DragMapScreenState extends State<DragMapScreen> {
                         myLocationEnabled: true,
                         onCameraMove: (CameraPosition position) {
                           if (!firstTimeSnapshot.data) {
-                            if (markerSnapShot.data.length > 0) {
+                            if (markerSnapShot.data.isNotEmpty) {
                               _position = position.target;
                               _dragMapBloc.dragMarker(
                                   _position, _markerIdVal());
@@ -87,7 +90,7 @@ class _DragMapScreenState extends State<DragMapScreen> {
                         },
                       );
                     } else {
-                      print("Marker not found");
+                      print('Marker not found');
                       return Container();
                     }
                   },
@@ -97,18 +100,19 @@ class _DragMapScreenState extends State<DragMapScreen> {
           },
         ),
       ),
-      floatingActionButton: StreamBuilder(
+      floatingActionButton: StreamBuilder<DragMapData>(
         stream: _dragMapBloc.dragMapData,
-        builder: (context, dragMapDataSnapshot) {
+        builder: (BuildContext context,
+            AsyncSnapshot<DragMapData> dragMapDataSnapshot) {
           return Padding(
             padding: EdgeInsets.only(bottom: 100),
             child: FloatingActionButton(
-              heroTag: "Ok position",
+              heroTag: 'Ok position',
               onPressed: (dragMapDataSnapshot.hasData)
                   ? () => _setDirection(dragMapDataSnapshot.data)
                   : null,
               child: Icon(Icons.check),
-              tooltip: "Continue with position",
+              tooltip: 'Continue with position',
             ),
           );
         },
@@ -123,8 +127,11 @@ class _DragMapScreenState extends State<DragMapScreen> {
   }
 
   String _markerIdVal({bool increment = false}) {
-    String val = 'marker_id_$_markerIdCounter';
-    if (increment) _markerIdCounter++;
+    final String val = 'marker_id_$_markerIdCounter';
+
+    if (increment) {
+      _markerIdCounter++;
+    }
 
     return val;
   }
@@ -132,12 +139,12 @@ class _DragMapScreenState extends State<DragMapScreen> {
   void _onMapCreated(GoogleMapController controller) {
     _googleMapController = controller;
 
-    Future.delayed(Duration(seconds: 1), () async {
+    Future<dynamic>.delayed(Duration(seconds: 1), () async {
       _googleMapController.animateCamera(
         CameraUpdate.newCameraPosition(
           CameraPosition(
             target: _position,
-            zoom: 17.0,
+            zoom: 17,
           ),
         ),
       );

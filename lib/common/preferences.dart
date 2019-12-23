@@ -6,12 +6,12 @@ mixin Preferences {
   /// Get the current map mode
   Future<String> getMapMode() async {
     _sharedPreferences = await SharedPreferences.getInstance();
-    return _sharedPreferences.getString("mapMode");
+    return _sharedPreferences.getString('mapMode');
   }
 
   /// Save the current map mode
-  Future saveMapMode(String mapModel) async {
+  Future<void> saveMapMode(String mapModel) async {
     _sharedPreferences = await SharedPreferences.getInstance();
-    await _sharedPreferences.setString("mapMode", mapModel);
+    await _sharedPreferences.setString('mapMode', mapModel);
   }
 }

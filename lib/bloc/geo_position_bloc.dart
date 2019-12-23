@@ -3,22 +3,22 @@ import 'package:geolocator/geolocator.dart';
 import 'package:rxdart/rxdart.dart';
 
 class GeoPositionBloc implements BaseBloc {
-  final geoLocator = Geolocator();
-  var locationOptions = LocationOptions(
+  final Geolocator geoLocator = Geolocator();
+  final LocationOptions locationOptions = LocationOptions(
     accuracy: LocationAccuracy.high,
     distanceFilter: 10,
   );
 
   /// Subjects or StreamControllers
-  final _position = BehaviorSubject<Position>();
+  final BehaviorSubject<Position> _position = BehaviorSubject<Position>();
 
   /// Observables
   Observable<Position> get position => _position.stream;
 
   /// Functions
   void init() {
-    geoLocator.getPositionStream(locationOptions).listen((position) {
-      print("${position.latitude}, ${position.longitude}");
+    geoLocator.getPositionStream(locationOptions).listen((Position position) {
+      print('${position.latitude}, ${position.longitude}');
       _position.sink.add(position);
     });
   }

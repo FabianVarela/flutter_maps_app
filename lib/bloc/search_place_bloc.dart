@@ -5,8 +5,10 @@ import 'package:google_maps_webservice/places.dart';
 
 class SearchPlaceBloc with GoogleApiKey implements BaseBloc {
   /// Subjects or StreamControllers
-  final _placeList = BehaviorSubject<List<PlacesSearchResult>>();
-  final _isLoading = BehaviorSubject<bool>();
+  final BehaviorSubject<List<PlacesSearchResult>> _placeList =
+      BehaviorSubject<List<PlacesSearchResult>>();
+
+  final BehaviorSubject<bool> _isLoading = BehaviorSubject<bool>();
 
   /// Observables
   Observable<List<PlacesSearchResult>> get placeList => _placeList.stream;
@@ -17,17 +19,17 @@ class SearchPlaceBloc with GoogleApiKey implements BaseBloc {
   void searchPlace(String value, double lat, double lng) async {
     _isLoading.sink.add(true);
 
-    final places = GoogleMapsPlaces(apiKey: getApiKey());
-    final result = await places.searchByText(
+    final GoogleMapsPlaces places = GoogleMapsPlaces(apiKey: getApiKey());
+    final PlacesSearchResponse result = await places.searchByText(
       value,
       location: Location(lat, lng),
       radius: 1000,
     );
 
-    if (result.status == "OK")
+    if (result.status == 'OK')
       _placeList.sink.add(result.results);
     else
-      _placeList.sink.add([]);
+      _placeList.sink.add(<PlacesSearchResult>[]);
 
     _isLoading.sink.add(false);
   }
