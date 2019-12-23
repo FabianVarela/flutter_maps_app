@@ -2,19 +2,15 @@ import 'dart:ui';
 
 import 'package:flutter_maps_bloc/bloc/base_bloc.dart';
 import 'package:flutter_maps_bloc/common/google_api_key.dart';
-import 'package:flutter_maps_bloc/common/preferences.dart';
-import 'package:flutter_maps_bloc/common/utils.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/directions.dart' as ws;
 
-class MapBloc with GoogleApiKey, Preferences implements BaseBloc {
+class MapBloc with GoogleApiKey implements BaseBloc {
   Map<MarkerId, Marker> _markers = <MarkerId, Marker>{};
   Map<PolylineId, Polyline> _polyLines = <PolylineId, Polyline>{};
 
   /// Subjects or StreamControllers
-  final BehaviorSubject<String> _mapMode = BehaviorSubject<String>();
-
   final BehaviorSubject<Map<MarkerId, Marker>> _markerList =
       BehaviorSubject<Map<MarkerId, Marker>>();
 
@@ -24,8 +20,6 @@ class MapBloc with GoogleApiKey, Preferences implements BaseBloc {
   final BehaviorSubject<RouteData> _routeData = BehaviorSubject<RouteData>();
 
   /// Observables
-  Observable<String> get mapMode => _mapMode.stream;
-
   Observable<Map<MarkerId, Marker>> get markerList => _markerList.stream;
 
   Observable<Map<PolylineId, Polyline>> get polylineList =>
@@ -34,18 +28,6 @@ class MapBloc with GoogleApiKey, Preferences implements BaseBloc {
   Observable<RouteData> get routeData => _routeData.stream;
 
   /// Functions
-  void init() async {
-    final String mapMode = await getMapMode();
-
-    try {
-      final String mapFileData =
-          await Utils.getFileData('assets/$mapMode.json');
-      _mapMode.sink.add(mapFileData);
-    } catch (_) {
-      _mapMode.sink.add('');
-    }
-  }
-
   void setOriginMarkers(double lat, double lng) {
     final MarkerId markerId = MarkerId('Current location');
     final Marker marker = Marker(
@@ -120,11 +102,6 @@ class MapBloc with GoogleApiKey, Preferences implements BaseBloc {
     _routeData.sink.add(RouteData(bounds, km, eta));
   }
 
-  void changeMapMode(String mode) async {
-    await saveMapMode(mode);
-    init();
-  }
-
   /// Private methods
   List<LatLng> _decodePolyLine(String encoded) {
     final List<LatLng> poly = List<LatLng>();
@@ -169,7 +146,6 @@ class MapBloc with GoogleApiKey, Preferences implements BaseBloc {
   /// Override functions
   @override
   void dispose() {
-    _mapMode.close();
     _markerList.close();
     _polylineList.close();
     _routeData.close();

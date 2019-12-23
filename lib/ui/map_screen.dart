@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_maps_bloc/bloc/geo_position_bloc.dart';
 import 'package:flutter_maps_bloc/bloc/map_bloc.dart';
+import 'package:flutter_maps_bloc/bloc/single_bloc.dart';
 import 'package:flutter_maps_bloc/ui/search_place_screen.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -33,7 +34,7 @@ class _MapScreenState extends State<MapScreen> {
   void initState() {
     super.initState();
     _geoPositionBloc.init();
-    _mapBloc.init();
+    singleBloc.init();
   }
 
   @override
@@ -93,7 +94,7 @@ class _MapScreenState extends State<MapScreen> {
 
                     return StreamBuilder<String>(
                       initialData: '',
-                      stream: _mapBloc.mapMode,
+                      stream: singleBloc.mapMode,
                       builder: (BuildContext context,
                           AsyncSnapshot<String> mapModeSnapshot) {
                         _setMapMode(mapModeSnapshot.data);
@@ -297,27 +298,27 @@ class _MapScreenState extends State<MapScreen> {
               Text('Selecciona una opción para el modo del mapa'),
               SizedBox(height: 10),
               RaisedButton(
-                onPressed: () => _mapBloc.changeMapMode('night_mode'),
+                onPressed: () => singleBloc.changeMapMode('night_mode'),
                 child: Text('Night'),
               ),
               SizedBox(height: 5),
               RaisedButton(
-                onPressed: () => _mapBloc.changeMapMode('night_blue_mode'),
+                onPressed: () => singleBloc.changeMapMode('night_blue_mode'),
                 child: Text('Night Blue'),
               ),
               SizedBox(height: 5),
               RaisedButton(
-                onPressed: () => _mapBloc.changeMapMode('personal_mode'),
+                onPressed: () => singleBloc.changeMapMode('personal_mode'),
                 child: Text('Personal'),
               ),
               SizedBox(height: 5),
               RaisedButton(
-                onPressed: () => _mapBloc.changeMapMode('uber_mode'),
+                onPressed: () => singleBloc.changeMapMode('uber_mode'),
                 child: Text('Uber'),
               ),
               SizedBox(height: 5),
               RaisedButton(
-                onPressed: () => _mapBloc.changeMapMode(''),
+                onPressed: () => singleBloc.changeMapMode(''),
                 child: Text('Default'),
               ),
               SizedBox(height: 5),
