@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter_maps_bloc/bloc/base_bloc.dart';
 import 'package:flutter_maps_bloc/common/google_api_key.dart';
+import 'package:flutter_maps_bloc/common/utils.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/directions.dart' as ws;
@@ -12,20 +13,20 @@ class MapBloc with GoogleApiKey implements BaseBloc {
 
   /// Subjects or StreamControllers
   final BehaviorSubject<Map<MarkerId, Marker>> _markerList =
-      BehaviorSubject<Map<MarkerId, Marker>>();
+  BehaviorSubject<Map<MarkerId, Marker>>();
 
   final BehaviorSubject<Map<PolylineId, Polyline>> _polylineList =
-      BehaviorSubject<Map<PolylineId, Polyline>>();
+  BehaviorSubject<Map<PolylineId, Polyline>>();
 
   final BehaviorSubject<RouteData> _routeData = BehaviorSubject<RouteData>();
 
   /// Observables
-  Observable<Map<MarkerId, Marker>> get markerList => _markerList.stream;
+  Stream<Map<MarkerId, Marker>> get markerList => _markerList.stream;
 
-  Observable<Map<PolylineId, Polyline>> get polylineList =>
+  Stream<Map<PolylineId, Polyline>> get polylineList =>
       _polylineList.stream;
 
-  Observable<RouteData> get routeData => _routeData.stream;
+  Stream<RouteData> get routeData => _routeData.stream;
 
   /// Functions
   void setOriginMarkers(double lat, double lng) {
@@ -61,10 +62,10 @@ class MapBloc with GoogleApiKey implements BaseBloc {
   void setPolyline(double originLat, double originLng, double destinationLat,
       double destinationLng, Color polylineColor) async {
     final ws.GoogleMapsDirections directions =
-        ws.GoogleMapsDirections(apiKey: getApiKey());
+    ws.GoogleMapsDirections(apiKey: getApiKey());
 
     final ws.DirectionsResponse response =
-        await directions.directionsWithLocation(
+    await directions.directionsWithLocation(
       ws.Location(originLat, originLng),
       ws.Location(destinationLat, destinationLng),
       travelMode: ws.TravelMode.driving,
@@ -83,7 +84,7 @@ class MapBloc with GoogleApiKey implements BaseBloc {
       final ws.Polyline polyline = step.polyline;
       final String points = polyline.points;
 
-      final List<LatLng> singlePolyLine = _decodePolyLine(points);
+      final List<LatLng> singlePolyLine = Utils.decodePolyLine(points);
       singlePolyLine.forEach(pointList.add);
     });
 
@@ -102,45 +103,9 @@ class MapBloc with GoogleApiKey implements BaseBloc {
     _routeData.sink.add(RouteData(bounds, km, eta));
   }
 
-  /// Private methods
-  List<LatLng> _decodePolyLine(String encoded) {
-    final List<LatLng> poly = List<LatLng>();
-    final int len = encoded.length;
-
-    int index = 0;
-    int lat = 0;
-    int lng = 0;
-
-    while (index < len) {
-      int b;
-      int shift = 0;
-      int result = 0;
-
-      do {
-        b = encoded.codeUnitAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-
-      final int dLat = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
-      lat += dLat;
-      shift = 0;
-      result = 0;
-
-      do {
-        b = encoded.codeUnitAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-
-      final int dLng = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
-      lng += dLng;
-
-      final LatLng p = LatLng(lat.toDouble() / 1E5, lng.toDouble() / 1E5);
-      poly.add(p);
-    }
-
-    return poly;
+  void clearMap() {
+    _polylineList.sink.add(<PolylineId, Polyline>{});
+    _routeData.sink.add(null);
   }
 
   /// Override functions

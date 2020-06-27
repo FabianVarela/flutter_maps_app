@@ -11,18 +11,19 @@ class DragMapBloc with GoogleApiKey implements BaseBloc {
   final BehaviorSubject<bool> _isFirstTime = BehaviorSubject<bool>();
 
   final BehaviorSubject<Map<MarkerId, Marker>> _markerList =
-      BehaviorSubject<Map<MarkerId, Marker>>();
+  BehaviorSubject<Map<MarkerId, Marker>>();
 
   final BehaviorSubject<DragMapData> _dragMapData =
-      BehaviorSubject<DragMapData>();
+  BehaviorSubject<DragMapData>();
 
   /// Observables
-  Observable<bool> get isFirstTime => _isFirstTime.stream;
+  Stream<bool> get isFirstTime => _isFirstTime.stream;
 
-  Observable<Map<MarkerId, Marker>> get markerList => _markerList.stream;
+  Stream<Map<MarkerId, Marker>> get markerList => _markerList.stream;
 
-  Observable<DragMapData> get dragMapData => _dragMapData.stream;
+  Stream<DragMapData> get dragMapData => _dragMapData.stream;
 
+  /// Functions
   void getInitialPosition(LatLng latLng, String idMarker) {
     _isFirstTime.sink.add(true);
 
@@ -40,7 +41,7 @@ class DragMapBloc with GoogleApiKey implements BaseBloc {
 
     Future<dynamic>.delayed(
       Duration(seconds: 3),
-      () => _isFirstTime.sink.add(false),
+          () => _isFirstTime.sink.add(false),
     );
   }
 
@@ -55,10 +56,10 @@ class DragMapBloc with GoogleApiKey implements BaseBloc {
 
   void getAddress(double lat, double lng) async {
     final GoogleMapsGeocoding geoCoding =
-        GoogleMapsGeocoding(apiKey: getApiKey());
+    GoogleMapsGeocoding(apiKey: getApiKey());
 
     final GeocodingResponse response =
-        await geoCoding.searchByLocation(Location(lat, lng));
+    await geoCoding.searchByLocation(Location(lat, lng));
 
     if (response.results.isNotEmpty) {
       final String formattedAddress = response.results[0].formattedAddress;
@@ -68,6 +69,7 @@ class DragMapBloc with GoogleApiKey implements BaseBloc {
     }
   }
 
+  /// Override functions
   @override
   void dispose() {
     _markerList.close();
