@@ -29,25 +29,27 @@ class _SearchPlaceScreenState extends State<SearchPlaceScreen> {
           Padding(
             padding: EdgeInsets.all(8),
             child: TextField(
-              decoration: InputDecoration(hintText: 'Type the city'),
+              decoration: InputDecoration(hintText: 'Type the address'),
               onChanged: (String value) =>
                   _searchPlaceBloc.searchPlace(value, widget.lat, widget.lng),
             ),
           ),
-          SizedBox(height: 20),
-          StreamBuilder<bool>(
-            stream: _searchPlaceBloc.isLoading,
-            builder:
-                (BuildContext context, AsyncSnapshot<bool> loadingSnapshot) {
-              if (loadingSnapshot.hasData) {
-                if (loadingSnapshot.data)
-                  return Center(child: CircularProgressIndicator());
-                else
-                  return _buildPlaceList();
-              } else {
-                return Container();
-              }
-            },
+          Padding(
+            padding: EdgeInsets.only(top: 20),
+            child: StreamBuilder<bool>(
+              stream: _searchPlaceBloc.isLoading,
+              builder:
+                  (BuildContext context, AsyncSnapshot<bool> loadingSnapshot) {
+                if (loadingSnapshot.hasData) {
+                  if (loadingSnapshot.data)
+                    return Center(child: CircularProgressIndicator());
+                  else
+                    return _buildPlaceList();
+                } else {
+                  return Container();
+                }
+              },
+            ),
           ),
         ],
       ),

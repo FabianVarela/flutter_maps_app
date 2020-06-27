@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_maps_bloc/bloc/geo_position_bloc.dart';
 import 'package:flutter_maps_bloc/bloc/map_bloc.dart';
 import 'package:flutter_maps_bloc/bloc/single_bloc.dart';
 import 'package:flutter_maps_bloc/ui/search_place_screen.dart';
@@ -13,7 +12,6 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  final GeoPositionBloc _geoPositionBloc = GeoPositionBloc();
   final MapBloc _mapBloc = MapBloc();
 
   bool _isRoteActivated = false;
@@ -33,20 +31,14 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
-    _geoPositionBloc.init();
+    singleBloc.setPosition();
     singleBloc.init();
-  }
-
-  @override
-  void dispose() {
-    _geoPositionBloc.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<Position>(
-      stream: _geoPositionBloc.position,
+      stream: singleBloc.position,
       builder:
           (BuildContext context, AsyncSnapshot<Position> positionSnapShot) {
         if (positionSnapShot.hasData) {
@@ -57,7 +49,7 @@ class _MapScreenState extends State<MapScreen> {
             _mapBloc.setOriginMarkers(_originLat, _originLng);
             return _setFullMap();
           } else {
-            return _setError('Error al obtener la posición');
+            return _setError('An error has ocurred while get the position');
           }
         } else if (positionSnapShot.hasError) {
           return _setError(positionSnapShot.error);
@@ -114,7 +106,7 @@ class _MapScreenState extends State<MapScreen> {
                               : <Marker>[]),
                           polylines: Set<Polyline>.of(
                               polylineSnapshot.hasData &&
-                                      polylineSnapshot.data.isNotEmpty
+                                  polylineSnapshot.data.isNotEmpty
                                   ? polylineSnapshot.data.values
                                   : <Polyline>[]),
                         );
@@ -139,70 +131,47 @@ class _MapScreenState extends State<MapScreen> {
     return <Widget>[
       FloatingActionButton(
         heroTag: 'Search',
-        onPressed: () async {
-          final List<dynamic> data = await Navigator.push(
-            context,
-            MaterialPageRoute<List<dynamic>>(
-              builder: (BuildContext context) =>
-                  SearchPlaceScreen(lat: _originLat, lng: _originLng),
-            ),
-          );
-
-          if (data != null) {
-            _destinationLat = data[1];
-            _destinationLng = data[2];
-
-            print('d lat: $_destinationLat --- d lng: $_destinationLng');
-            _goToDestination();
-          }
-        },
+        onPressed: _goToSearch,
         child: Icon(Icons.search),
         tooltip: 'Search',
       ),
-      SizedBox(height: 5),
-      FloatingActionButton(
-        heroTag: 'Location',
-        onPressed: _goToOrigin,
-        child: Icon(Icons.my_location),
-        tooltip: 'Current location',
+      Padding(
+        padding: EdgeInsets.only(top: 5),
+        child: FloatingActionButton(
+          heroTag: 'Location',
+          onPressed: _goToOrigin,
+          child: Icon(Icons.my_location),
+          tooltip: 'Current location',
+        ),
       ),
-      SizedBox(height: 5),
-      (_destinationLat != null && _destinationLng != null)
-          ? FloatingActionButton(
-              heroTag: 'Directions',
-              onPressed: _goToDestination,
-              child: Icon(Icons.directions),
-              tooltip: 'Destination location',
-            )
-          : Container(),
-      (_destinationLat != null && _destinationLng != null)
-          ? SizedBox(height: 5)
-          : Container(),
-      (_destinationLat != null && _destinationLng != null)
-          ? FloatingActionButton(
-              heroTag: 'Directions car',
-              onPressed: () {
-                _isRoteActivated = true;
-                _mapBloc.setPolyline(
-                  _originLat,
-                  _originLng,
-                  _destinationLat,
-                  _destinationLng,
-                  Colors.blue,
-                );
-              },
-              child: Icon(Icons.directions_car),
-              tooltip: 'Get route',
-            )
-          : Container(),
-      (_destinationLat != null && _destinationLng != null)
-          ? SizedBox(height: 5)
-          : Container(),
-      FloatingActionButton(
-        heroTag: 'settings',
-        onPressed: _showModalBottomSheet,
-        child: Icon(Icons.settings),
-        tooltip: 'Settings',
+      if (_destinationLat != null && _destinationLng != null)
+        Padding(
+          padding: EdgeInsets.only(top: 5),
+          child: FloatingActionButton(
+            heroTag: 'Directions',
+            onPressed: _goToDestination,
+            child: Icon(Icons.directions),
+            tooltip: 'Destination location',
+          ),
+        ),
+      if (_destinationLat != null && _destinationLng != null)
+        Padding(
+          padding: EdgeInsets.only(top: 5),
+          child: FloatingActionButton(
+            heroTag: 'Directions car',
+            onPressed: _setRoutePolyline,
+            child: Icon(Icons.directions_car),
+            tooltip: 'Get route',
+          ),
+        ),
+      Padding(
+        padding: EdgeInsets.only(top: 5),
+        child: FloatingActionButton(
+          heroTag: 'settings',
+          onPressed: _showModalBottomSheet,
+          child: Icon(Icons.settings),
+          tooltip: 'Settings',
+        ),
       ),
     ];
   }
@@ -246,6 +215,26 @@ class _MapScreenState extends State<MapScreen> {
       _googleMapController.setMapStyle(mapMode.isEmpty ? null : mapMode);
   }
 
+  void _goToSearch() async {
+    final List<dynamic> data = await Navigator.push(
+      context,
+      MaterialPageRoute<List<dynamic>>(
+        builder: (BuildContext context) =>
+            SearchPlaceScreen(lat: _originLat, lng: _originLng),
+      ),
+    );
+
+    if (data != null) {
+      _mapBloc.clearMap();
+
+      _destinationLat = data[1];
+      _destinationLng = data[2];
+
+      print('d lat: $_destinationLat --- d lng: $_destinationLng');
+      _goToDestination();
+    }
+  }
+
   void _goToOrigin() {
     _googleMapController.animateCamera(
       CameraUpdate.newCameraPosition(CameraPosition(
@@ -274,6 +263,17 @@ class _MapScreenState extends State<MapScreen> {
 
       _mapBloc.setDestinationMarker(_destinationLat, _destinationLng);
     }
+  }
+
+  void _setRoutePolyline() {
+    _isRoteActivated = true;
+    _mapBloc.setPolyline(
+      _originLat,
+      _originLng,
+      _destinationLat,
+      _destinationLng,
+      Colors.blue,
+    );
   }
 
   void _setFixCamera(directions.Bounds bounds) {

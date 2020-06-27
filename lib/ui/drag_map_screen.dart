@@ -74,6 +74,7 @@ class _DragMapScreenState extends State<DragMapScreen> {
                           zoom: 12,
                         ),
                         myLocationEnabled: true,
+                        myLocationButtonEnabled: false,
                         onCameraMove: (CameraPosition position) {
                           if (!firstTimeSnapshot.data) {
                             if (markerSnapShot.data.isNotEmpty) {
@@ -101,24 +102,40 @@ class _DragMapScreenState extends State<DragMapScreen> {
           },
         ),
       ),
-      floatingActionButton: StreamBuilder<DragMapData>(
-        stream: _dragMapBloc.dragMapData,
-        builder: (BuildContext context,
-            AsyncSnapshot<DragMapData> dragMapDataSnapshot) {
-          return Padding(
-            padding: EdgeInsets.only(bottom: 100),
-            child: FloatingActionButton(
+      floatingActionButton: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: _setFloatingButtons(),
+      ),
+    );
+  }
+
+  List<Widget> _setFloatingButtons() {
+    return <Widget>[
+      FloatingActionButton(
+        heroTag: 'Location',
+        onPressed: _goToOrigin,
+        child: Icon(Icons.my_location),
+        tooltip: 'Current location',
+      ),
+      Padding(
+        padding: EdgeInsets.only(top: 5),
+        child: StreamBuilder<DragMapData>(
+          stream: _dragMapBloc.dragMapData,
+          builder: (BuildContext context,
+              AsyncSnapshot<DragMapData> dragMapDataSnapshot) {
+            return FloatingActionButton(
               heroTag: 'Ok position',
               onPressed: (dragMapDataSnapshot.hasData)
                   ? () => _setDirection(dragMapDataSnapshot.data)
                   : null,
               child: Icon(Icons.check),
               tooltip: 'Continue with position',
-            ),
-          );
-        },
-      ),
-    );
+            );
+          },
+        ),
+      )
+    ];
   }
 
   /// Functions
@@ -127,14 +144,15 @@ class _DragMapScreenState extends State<DragMapScreen> {
       _googleMapController.setMapStyle(mapMode.isEmpty ? null : mapMode);
   }
 
-  String _markerIdVal({bool increment = false}) {
-    final String val = 'marker_id_$_markerIdCounter';
-
-    if (increment) {
-      _markerIdCounter++;
-    }
-
-    return val;
+  void _goToOrigin() {
+    _googleMapController.animateCamera(
+      CameraUpdate.newCameraPosition(CameraPosition(
+        target: LatLng(widget.lat, widget.lng),
+        zoom: 16,
+        bearing: 0,
+        tilt: 0,
+      )),
+    );
   }
 
   void _onMapCreated(GoogleMapController controller) {
@@ -153,4 +171,14 @@ class _DragMapScreenState extends State<DragMapScreen> {
   }
 
   void _setDirection(DragMapData data) => Navigator.pop(context, data);
+
+  String _markerIdVal({bool increment = false}) {
+    final String val = 'marker_id_$_markerIdCounter';
+
+    if (increment) {
+      _markerIdCounter++;
+    }
+
+    return val;
+  }
 }
