@@ -8,6 +8,7 @@
 .buildlog/
 .history
 .svn/
+.env*
 
 # IntelliJ related
 *.iml
@@ -60,6 +61,8 @@
 **/ios/Flutter/app.flx
 **/ios/Flutter/app.zip
 **/ios/Flutter/flutter_assets/
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/flutter_*.sh
 **/ios/ServiceDefinitions.json
 **/ios/Runner/GeneratedPluginRegistrant.*
 
