@@ -9,6 +9,7 @@
 .history
 .svn/
 .env*
+coverage/
 
 # IntelliJ related
 *.iml
@@ -21,13 +22,19 @@
 
 # Flutter/Dart/Pub related
 **/doc/api/
+**/ios/Flutter/.last_build_id
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
 .packages
 .pub-cache/
 .pub/
-/build/
+build/
+flutter_*.png
+linked_*.ds
+unlinked.ds
+unlinked_spec.ds
+.fvm/
 
 # Android related
 **/android/**/gradle-wrapper.jar
@@ -57,14 +64,15 @@
 **/ios/.generated/
 **/ios/Flutter/App.framework
 **/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
 **/ios/Flutter/Generated.xcconfig
 **/ios/Flutter/app.flx
 **/ios/Flutter/app.zip
 **/ios/Flutter/flutter_assets/
-**/ios/Flutter/Flutter.podspec
-**/ios/Flutter/flutter_*.sh
+**/ios/Flutter/flutter_export_environment.sh
 **/ios/ServiceDefinitions.json
 **/ios/Runner/GeneratedPluginRegistrant.*
+**/ios/**.lock
 
 # Exceptions to above rules.
 !**/ios/**/default.mode1v3
@@ -72,3 +80,28 @@
 !**/ios/**/default.pbxuser
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
+
+# Web related
+lib/generated_plugin_registrant.dart
+
+# macOS
+**/Flutter/ephemeral/
+**/Pods/
+**/macos/Flutter/GeneratedPluginRegistrant.swift
+**/macos/Flutter/ephemeral
+**/xcuserdata/
+
+# Windows
+**/windows/flutter/ephemeral/
+**/windows/flutter/generated_plugin_registrant.cc
+**/windows/flutter/generated_plugin_registrant.h
+**/windows/flutter/generated_plugins.cmake
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Dart define file
+config-keys.json
