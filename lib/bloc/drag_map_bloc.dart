@@ -1,9 +1,8 @@
-import 'package:flutter_maps_bloc/common/google_api_key.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/geocoding.dart';
 import 'package:rxdart/rxdart.dart';
 
-class DragMapBloc with GoogleApiKey {
+class DragMapBloc {
   final _markers = <MarkerId, Marker>{};
 
   final _isFirstTime = BehaviorSubject<bool>();
@@ -45,7 +44,9 @@ class DragMapBloc with GoogleApiKey {
   }
 
   Future<void> getAddress(double lat, double lng) async {
-    final geoCoding = GoogleMapsGeocoding(apiKey: mapsApiKey);
+    final geoCoding = GoogleMapsGeocoding(
+      apiKey: const String.fromEnvironment('GOOGLE_MAPS_API_KEY'),
+    );
     final response = await geoCoding.searchByLocation(
       Location(lat: lat, lng: lng),
     );

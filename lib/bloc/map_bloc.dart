@@ -1,12 +1,11 @@
 import 'dart:ui';
 
-import 'package:flutter_maps_bloc/common/google_api_key.dart';
 import 'package:flutter_maps_bloc/common/utils.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/directions.dart' as ws;
 import 'package:rxdart/rxdart.dart';
 
-class MapBloc with GoogleApiKey {
+class MapBloc {
   final _markers = <MarkerId, Marker>{};
   final _polyLines = <PolylineId, Polyline>{};
 
@@ -55,7 +54,9 @@ class MapBloc with GoogleApiKey {
     ({double lat, double lng}) destination,
     Color polylineColor,
   ) async {
-    final directions = ws.GoogleMapsDirections(apiKey: mapsApiKey);
+    final directions = ws.GoogleMapsDirections(
+      apiKey: const String.fromEnvironment('GOOGLE_MAPS_API_KEY'),
+    );
     final response = await directions.directionsWithLocation(
       ws.Location(lat: origin.lat, lng: origin.lng),
       ws.Location(lat: destination.lat, lng: destination.lng),

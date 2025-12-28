@@ -1,8 +1,7 @@
-import 'package:flutter_maps_bloc/common/google_api_key.dart';
 import 'package:google_maps_webservice/places.dart';
 import 'package:rxdart/rxdart.dart';
 
-class SearchPlaceBloc with GoogleApiKey {
+class SearchPlaceBloc {
   final _placeList = BehaviorSubject<List<PlacesSearchResult>>();
 
   final _isLoading = BehaviorSubject<bool>();
@@ -14,7 +13,9 @@ class SearchPlaceBloc with GoogleApiKey {
   Future<void> searchPlace(String value, double lat, double lng) async {
     _isLoading.sink.add(true);
 
-    final places = GoogleMapsPlaces(apiKey: mapsApiKey);
+    final places = GoogleMapsPlaces(
+      apiKey: const String.fromEnvironment('GOOGLE_MAPS_API_KEY'),
+    );
     final result = await places.searchByText(
       value,
       location: Location(lat: lat, lng: lng),
