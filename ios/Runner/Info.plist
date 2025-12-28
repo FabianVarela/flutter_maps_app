@@ -43,7 +43,17 @@
 	<false/>
 	<key>io.flutter.embedded_views_preview</key>
 	<true/>
+	<key>NSLocationAlwaysUsageDescription</key>
+    <string>This app needs access to location when the app is in the background.</string>
     <key>NSLocationWhenInUseUsageDescription</key>
-    <string>Needed to access location</string>
+    <string>This app needs access to location when open.</string>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>UIBackgroundModes</key>
+    <array>
+        <string>location</string>
+    </array>
 </dict>
 </plist>
