@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_maps_bloc/ui/map_screen.dart';
+import 'package:flutter_maps_app/ui/map_screen.dart';
 
 void main() async {
   runApp(const MyApp());

@@ -27,7 +27,7 @@ if (project.hasProperty("dart-defines")) {
 }
 
 android {
-    namespace = "com.developer.fabian.flutter_maps_bloc"
+    namespace = "com.developer.fabian.flutter_maps_app"
     compileSdk = 36
     ndkVersion = "27.0.12077973"
 
@@ -47,7 +47,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.developer.fabian.flutter_maps_bloc"
+        applicationId = "com.developer.fabian.flutter_maps_app"
 
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion

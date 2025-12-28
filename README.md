@@ -1,4 +1,4 @@
-# flutter_maps_bloc
+# flutter_maps_app
 
 Create an application using google Maps and BLoC in Flutter
 

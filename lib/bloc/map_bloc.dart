@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:flutter_maps_bloc/common/utils.dart';
+import 'package:flutter_maps_app/common/utils.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/directions.dart' as ws;
 import 'package:rxdart/rxdart.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_maps_bloc/common/preferences.dart';
-import 'package:flutter_maps_bloc/common/utils.dart';
+import 'package:flutter_maps_app/common/preferences.dart';
+import 'package:flutter_maps_app/common/utils.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:rxdart/rxdart.dart';
 

@@ -1,4 +1,4 @@
-package com.developer.fabian.flutter_maps_bloc
+package com.developer.fabian.flutter_maps_app
 
 import io.flutter.embedding.android.FlutterActivity
 

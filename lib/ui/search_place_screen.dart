@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_maps_bloc/bloc/drag_map_bloc.dart';
-import 'package:flutter_maps_bloc/bloc/search_place_bloc.dart';
-import 'package:flutter_maps_bloc/ui/drag_map_screen.dart';
+import 'package:flutter_maps_app/bloc/drag_map_bloc.dart';
+import 'package:flutter_maps_app/bloc/search_place_bloc.dart';
+import 'package:flutter_maps_app/ui/drag_map_screen.dart';
 import 'package:google_maps_webservice/places.dart';
 
 class SearchPlaceScreen extends StatefulWidget {

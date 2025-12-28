@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_maps_bloc/bloc/map_bloc.dart';
-import 'package:flutter_maps_bloc/bloc/single_bloc.dart';
-import 'package:flutter_maps_bloc/ui/search_place_screen.dart';
+import 'package:flutter_maps_app/bloc/map_bloc.dart';
+import 'package:flutter_maps_app/bloc/single_bloc.dart';
+import 'package:flutter_maps_app/ui/search_place_screen.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/directions.dart' as directions;

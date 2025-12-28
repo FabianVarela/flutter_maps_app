@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_maps_bloc/bloc/drag_map_bloc.dart';
-import 'package:flutter_maps_bloc/bloc/single_bloc.dart';
+import 'package:flutter_maps_app/bloc/drag_map_bloc.dart';
+import 'package:flutter_maps_app/bloc/single_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class DragMapScreen extends StatefulWidget {
