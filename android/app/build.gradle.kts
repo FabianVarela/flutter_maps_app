@@ -1,3 +1,4 @@
+import java.util.Base64
 import java.util.Properties
 import java.io.FileInputStream
 
@@ -11,6 +12,18 @@ val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
+
+val dartEnvironmentVariables = mutableMapOf<String, String>()
+if (project.hasProperty("dart-defines")) {
+    (project.property("dart-defines") as String).split(",").forEach { entry ->
+        val decodedEntry = String(Base64.getDecoder().decode(entry), Charsets.UTF_8)
+        val pair = decodedEntry.split("=", limit = 2)
+
+        if (pair.size == 2) {
+            dartEnvironmentVariables[pair[0]] = pair[1]
+        }
+    }
 }
 
 android {
@@ -40,6 +53,8 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        manifestPlaceholders["MAPS_API_KEY"] = dartEnvironmentVariables["GOOGLE_MAPS_API_KEY"] ?: ""
     }
 
     buildTypes {

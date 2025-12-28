@@ -55,5 +55,7 @@
     <array>
         <string>location</string>
     </array>
+	<key>DART_DEFINES</key>
+	<string>$(DART_DEFINES)</string>
 </dict>
 </plist>
