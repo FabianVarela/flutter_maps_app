@@ -1,53 +1,72 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_maps_bloc/bloc/drag_map_bloc.dart';
 import 'package:flutter_maps_bloc/bloc/search_place_bloc.dart';
 import 'package:flutter_maps_bloc/ui/drag_map_screen.dart';
 import 'package:google_maps_webservice/places.dart';
 
 class SearchPlaceScreen extends StatefulWidget {
+  const SearchPlaceScreen({required this.lat, required this.lng, super.key});
+
   final double lat;
   final double lng;
 
-  SearchPlaceScreen({@required this.lat, @required this.lng});
-
   @override
-  _SearchPlaceScreenState createState() => _SearchPlaceScreenState();
+  State<SearchPlaceScreen> createState() => _SearchPlaceScreenState();
 }
 
 class _SearchPlaceScreenState extends State<SearchPlaceScreen> {
-  final SearchPlaceBloc _searchPlaceBloc = SearchPlaceBloc();
+  final _searchPlaceBloc = SearchPlaceBloc();
 
-  /// Override functions
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Search address'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Search address'), centerTitle: true),
       body: ListView(
         children: <Widget>[
           Padding(
-            padding: EdgeInsets.all(8),
+            padding: const .all(8),
             child: TextField(
-              decoration: InputDecoration(hintText: 'Type the address'),
-              onChanged: (String value) =>
-                  _searchPlaceBloc.searchPlace(value, widget.lat, widget.lng),
+              decoration: const InputDecoration(hintText: 'Type the address'),
+              onChanged: (value) {
+                _searchPlaceBloc.searchPlace(value, widget.lat, widget.lng);
+              },
             ),
           ),
           Padding(
-            padding: EdgeInsets.only(top: 20),
+            padding: const .only(top: 20),
             child: StreamBuilder<bool>(
               stream: _searchPlaceBloc.isLoading,
-              builder:
-                  (BuildContext context, AsyncSnapshot<bool> loadingSnapshot) {
+              builder: (_, loadingSnapshot) {
                 if (loadingSnapshot.hasData) {
-                  if (loadingSnapshot.data)
-                    return Center(child: CircularProgressIndicator());
-                  else
-                    return _buildPlaceList();
-                } else {
-                  return Container();
+                  if (loadingSnapshot.data ?? false) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else {
+                    return StreamBuilder<List<PlacesSearchResult>>(
+                      stream: _searchPlaceBloc.placeList,
+                      builder: (_, placesSnapshot) {
+                        if (placesSnapshot.hasData) {
+                          if (placesSnapshot.data!.isNotEmpty) {
+                            final places = placesSnapshot.data!;
+
+                            return ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: places.length,
+                              itemBuilder: (_, index) => ListTile(
+                                leading: const Icon(Icons.location_on),
+                                title: Text(
+                                  places[index].formattedAddress ?? '',
+                                ),
+                                onTap: () => _selectPlace(places[index]),
+                              ),
+                            );
+                          }
+                        }
+                        return const Offstage();
+                      },
+                    );
+                  }
                 }
+                return const Offstage();
               },
             ),
           ),
@@ -55,76 +74,40 @@ class _SearchPlaceScreenState extends State<SearchPlaceScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'Place Map',
-        onPressed: () async {
-          final dynamic destinationResult = await Navigator.push(
-            context,
-            MaterialPageRoute<dynamic>(
-              builder: (BuildContext context) =>
-                  DragMapScreen(lat: widget.lat, lng: widget.lng),
-            ),
-          );
-
-          if (destinationResult != null) {
-            _returnToMapScreen(
-              destinationResult.formattedAddress,
-              destinationResult.latitude,
-              destinationResult.longitude,
-            );
-          }
-        },
-        child: Icon(Icons.person_pin_circle),
+        onPressed: _onDragMap,
         tooltip: 'Get destination from map',
+        child: const Icon(Icons.person_pin_circle),
       ),
     );
   }
 
-  /// Widget functions
-  Widget _buildPlaceList() {
-    return StreamBuilder<List<PlacesSearchResult>>(
-      stream: _searchPlaceBloc.placeList,
-      builder: (BuildContext context,
-          AsyncSnapshot<List<PlacesSearchResult>> placesSnapshot) {
-        if (placesSnapshot.hasData) {
-          if (placesSnapshot.data.isNotEmpty) {
-            final List<PlacesSearchResult> places = placesSnapshot.data;
-
-            return ListView.builder(
-              shrinkWrap: true,
-              scrollDirection: Axis.vertical,
-              itemCount: places.length,
-              itemBuilder: (BuildContext context, int index) {
-                return ListTile(
-                  leading: Icon(Icons.location_on),
-                  title: Text(places[index].formattedAddress),
-                  onTap: () {
-                    FocusScope.of(context).requestFocus(FocusNode());
-
-                    _returnToMapScreen(
-                        places[index].formattedAddress,
-                        places[index].geometry.location.lat,
-                        places[index].geometry.location.lng);
-                  },
-                );
-              },
-            );
-          } else {
-            return Container();
-          }
-        } else {
-          return Container();
-        }
-      },
+  void _selectPlace(PlacesSearchResult place) {
+    FocusScope.of(context).requestFocus(FocusNode());
+    _returnToMapScreen(
+      place.formattedAddress ?? '',
+      place.geometry?.location.lat ?? 0,
+      place.geometry?.location.lng ?? 0,
     );
   }
 
-  /// Functions
+  Future<void> _onDragMap() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute<DragMapData>(
+        builder: (_) => DragMapScreen(lat: widget.lat, lng: widget.lng),
+      ),
+    );
+
+    if (result != null) {
+      _returnToMapScreen(
+        result.formattedAddress ?? '',
+        result.latitude,
+        result.longitude,
+      );
+    }
+  }
+
   void _returnToMapScreen(String address, double lat, double lng) {
-    final List<dynamic> data = <dynamic>[];
-
-    data.add(address);
-    data.add(lat);
-    data.add(lng);
-
-    Navigator.pop(context, data);
+    Navigator.pop(context, <dynamic>[address, lat, lng]);
   }
 }

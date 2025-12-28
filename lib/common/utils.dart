@@ -2,21 +2,21 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class Utils {
-  static  Future<String> getFileData(String path) async =>
-      await rootBundle.loadString(path);
+  static Future<String> getFileData(String path) async =>
+      rootBundle.loadString(path);
 
   static List<LatLng> decodePolyLine(String encoded) {
-    final List<LatLng> poly = List<LatLng>();
-    final int len = encoded.length;
+    final poly = <LatLng>[];
+    final len = encoded.length;
 
-    int index = 0;
-    int lat = 0;
-    int lng = 0;
+    var index = 0;
+    var lat = 0;
+    var lng = 0;
 
     while (index < len) {
       int b;
-      int shift = 0;
-      int result = 0;
+      var shift = 0;
+      var result = 0;
 
       do {
         b = encoded.codeUnitAt(index++) - 63;
@@ -24,7 +24,7 @@ class Utils {
         shift += 5;
       } while (b >= 0x20);
 
-      final int dLat = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
+      final dLat = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
       lat += dLat;
       shift = 0;
       result = 0;
@@ -35,10 +35,10 @@ class Utils {
         shift += 5;
       } while (b >= 0x20);
 
-      final int dLng = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
+      final dLng = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
       lng += dLng;
 
-      final LatLng p = LatLng(lat.toDouble() / 1E5, lng.toDouble() / 1E5);
+      final p = LatLng(lat.toDouble() / 1E5, lng.toDouble() / 1E5);
       poly.add(p);
     }
 

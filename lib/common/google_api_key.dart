@@ -1,13 +1,9 @@
-import 'dart:io';
-
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter/foundation.dart';
 
 mixin GoogleApiKey {
-  String getApiKey() {
-    final DotEnv dotEnv = DotEnv();
-
-    return Platform.isAndroid
-        ? dotEnv.env['GOOGLE_MAP_API_KEY_ANDROID']
-        : dotEnv.env['GOOGLE_MAP_API_KEY_IOS'];
+  String get mapsApiKey {
+    return defaultTargetPlatform == .android
+        ? const String.fromEnvironment('GOOGLE_MAP_API_KEY_ANDROID')
+        : const String.fromEnvironment('GOOGLE_MAP_API_KEY_IOS');
   }
 }

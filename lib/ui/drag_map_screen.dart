@@ -6,28 +6,27 @@ import 'package:flutter_maps_bloc/bloc/single_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class DragMapScreen extends StatefulWidget {
+  const DragMapScreen({required this.lat, required this.lng, super.key});
+
   final double lat;
   final double lng;
 
-  DragMapScreen({@required this.lat, @required this.lng});
-
   @override
-  _DragMapScreenState createState() => _DragMapScreenState();
+  State<DragMapScreen> createState() => _DragMapScreenState();
 }
 
 class _DragMapScreenState extends State<DragMapScreen> {
   final DragMapBloc _dragMapBloc = DragMapBloc();
 
+  late LatLng _position;
+  late GoogleMapController? _googleMapController;
+
   int _markerIdCounter = 0;
-  LatLng _position;
 
-  /// Google maps
-  GoogleMapController _googleMapController;
-
-  /// Override functions
   @override
   void initState() {
     super.initState();
+
     _position = LatLng(widget.lat, widget.lng);
     _dragMapBloc.getInitialPosition(_position, _markerIdVal());
     singleBloc.init();
@@ -41,130 +40,97 @@ class _DragMapScreenState extends State<DragMapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final double _width = MediaQuery.of(context).size.width;
-    final double _height = MediaQuery.of(context).size.height;
+    final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
-      body: Container(
-        width: _width,
-        height: _height,
+      body: SizedBox.fromSize(
+        size: Size(size.width, size.height),
         child: StreamBuilder<Map<MarkerId, Marker>>(
-          initialData: <MarkerId, Marker>{},
+          initialData: const <MarkerId, Marker>{},
           stream: _dragMapBloc.markerList,
-          builder: (BuildContext context,
-              AsyncSnapshot<Map<MarkerId, Marker>> markerSnapShot) {
-            return StreamBuilder<String>(
-              initialData: '',
-              stream: singleBloc.mapMode,
-              builder: (BuildContext context,
-                  AsyncSnapshot<String> mapModeSnapshot) {
-                _setMapMode(mapModeSnapshot.data);
+          builder: (_, markerSnapShot) => StreamBuilder<String>(
+            initialData: '',
+            stream: singleBloc.mapMode,
+            builder: (_, mapModeSnapshot) => StreamBuilder<bool>(
+              initialData: false,
+              stream: _dragMapBloc.isFirstTime,
+              builder: (_, firstTimeSnapshot) {
+                if (!markerSnapShot.hasData) return const Offstage();
 
-                return StreamBuilder<bool>(
-                  initialData: false,
-                  stream: _dragMapBloc.isFirstTime,
-                  builder: (BuildContext context,
-                      AsyncSnapshot<bool> firstTimeSnapshot) {
-                    if (markerSnapShot.hasData) {
-                      return GoogleMap(
-                        markers: Set<Marker>.of(markerSnapShot.data.values),
-                        onMapCreated: _onMapCreated,
-                        initialCameraPosition: CameraPosition(
-                          target: _position,
-                          zoom: 12,
-                        ),
-                        myLocationEnabled: true,
-                        myLocationButtonEnabled: false,
-                        onCameraMove: (CameraPosition position) {
-                          if (!firstTimeSnapshot.data) {
-                            if (markerSnapShot.data.isNotEmpty) {
-                              _position = position.target;
-                              _dragMapBloc.dragMarker(
-                                  _position, _markerIdVal());
-                            }
-                          }
-                        },
-                        onCameraIdle: () {
-                          if (!firstTimeSnapshot.data) {
-                            _dragMapBloc.getAddress(
-                                _position.latitude, _position.longitude);
-                          }
-                        },
+                return GoogleMap(
+                  markers: Set<Marker>.of(markerSnapShot.data!.values),
+                  initialCameraPosition: CameraPosition(
+                    target: _position,
+                    zoom: 12,
+                  ),
+                  myLocationEnabled: true,
+                  myLocationButtonEnabled: false,
+                  style: mapModeSnapshot.data,
+                  onMapCreated: _onMapCreated,
+                  onCameraMove: (position) {
+                    if (firstTimeSnapshot.data == false) {
+                      if (markerSnapShot.data!.isNotEmpty) {
+                        _position = position.target;
+                        _dragMapBloc.dragMarker(_position, _markerIdVal());
+                      }
+                    }
+                  },
+                  onCameraIdle: () {
+                    if (firstTimeSnapshot.data == false) {
+                      _dragMapBloc.getAddress(
+                        _position.latitude,
+                        _position.longitude,
                       );
-                    } else {
-                      print('Marker not found');
-                      return Container();
                     }
                   },
                 );
               },
-            );
-          },
+            ),
+          ),
         ),
       ),
       floatingActionButton: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: _setFloatingButtons(),
+        spacing: 5,
+        mainAxisAlignment: .end,
+        crossAxisAlignment: .end,
+        children: <Widget>[
+          FloatingActionButton(
+            heroTag: 'Location',
+            onPressed: _goToOrigin,
+            tooltip: 'Current location',
+            child: const Icon(Icons.my_location),
+          ),
+          StreamBuilder<DragMapData>(
+            stream: _dragMapBloc.dragMapData,
+            builder: (_, dragMapDataSnapshot) => FloatingActionButton(
+              heroTag: 'Ok position',
+              onPressed: (dragMapDataSnapshot.hasData)
+                  ? () => _setDirection(dragMapDataSnapshot.data!)
+                  : null,
+              tooltip: 'Continue with position',
+              child: const Icon(Icons.check),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  List<Widget> _setFloatingButtons() {
-    return <Widget>[
-      FloatingActionButton(
-        heroTag: 'Location',
-        onPressed: _goToOrigin,
-        child: Icon(Icons.my_location),
-        tooltip: 'Current location',
-      ),
-      Padding(
-        padding: EdgeInsets.only(top: 5),
-        child: StreamBuilder<DragMapData>(
-          stream: _dragMapBloc.dragMapData,
-          builder: (BuildContext context,
-              AsyncSnapshot<DragMapData> dragMapDataSnapshot) {
-            return FloatingActionButton(
-              heroTag: 'Ok position',
-              onPressed: (dragMapDataSnapshot.hasData)
-                  ? () => _setDirection(dragMapDataSnapshot.data)
-                  : null,
-              child: Icon(Icons.check),
-              tooltip: 'Continue with position',
-            );
-          },
-        ),
-      )
-    ];
-  }
-
-  /// Functions
-  void _setMapMode(String mapMode) {
-    if (_googleMapController != null)
-      _googleMapController.setMapStyle(mapMode.isEmpty ? null : mapMode);
-  }
-
   void _goToOrigin() {
-    _googleMapController.animateCamera(
-      CameraUpdate.newCameraPosition(CameraPosition(
-        target: LatLng(widget.lat, widget.lng),
-        zoom: 16,
-        bearing: 0,
-        tilt: 0,
-      )),
+    _googleMapController?.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(target: LatLng(widget.lat, widget.lng), zoom: 16),
+      ),
     );
   }
 
   void _onMapCreated(GoogleMapController controller) {
     _googleMapController = controller;
 
-    Future<dynamic>.delayed(Duration(seconds: 1), () async {
-      _googleMapController.animateCamera(
+    Future<dynamic>.delayed(const Duration(seconds: 1), () async {
+      await _googleMapController?.animateCamera(
         CameraUpdate.newCameraPosition(
-          CameraPosition(
-            target: _position,
-            zoom: 17,
-          ),
+          CameraPosition(target: _position, zoom: 17),
         ),
       );
     });
@@ -173,11 +139,8 @@ class _DragMapScreenState extends State<DragMapScreen> {
   void _setDirection(DragMapData data) => Navigator.pop(context, data);
 
   String _markerIdVal({bool increment = false}) {
-    final String val = 'marker_id_$_markerIdCounter';
-
-    if (increment) {
-      _markerIdCounter++;
-    }
+    final val = 'marker_id_$_markerIdCounter';
+    if (increment) _markerIdCounter++;
 
     return val;
   }

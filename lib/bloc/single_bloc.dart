@@ -1,51 +1,72 @@
-import 'package:flutter_maps_bloc/bloc/base_bloc.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_maps_bloc/common/preferences.dart';
 import 'package:flutter_maps_bloc/common/utils.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:rxdart/rxdart.dart';
 
-class SingleBloc with Preferences implements BaseBloc {
-  final Geolocator geoLocator = Geolocator();
-  final LocationOptions locationOptions = LocationOptions(
+class SingleBloc with Preferences {
+  static const _locationSettings = LocationSettings(
     accuracy: LocationAccuracy.high,
     distanceFilter: 10,
   );
 
-  /// Subjects or StreamControllers
-  final BehaviorSubject<Position> _position = BehaviorSubject<Position>();
-  final BehaviorSubject<String> _mapMode = BehaviorSubject<String>();
+  final _position = BehaviorSubject<Position>();
+  final _mapMode = BehaviorSubject<String>();
 
-  /// Observables
   Stream<Position> get position => _position.stream;
 
   Stream<String> get mapMode => _mapMode.stream;
 
-  /// Functions
-  void setPosition() {
-    geoLocator.getPositionStream(locationOptions).listen((Position position) {
-      print('${position.latitude}, ${position.longitude}');
-      _position.sink.add(position);
-    });
+  Future<void> setPosition() async {
+    try {
+      await _setupPermissions();
+
+      Geolocator.getPositionStream(locationSettings: _locationSettings).listen((
+        position,
+      ) {
+        if (kDebugMode) print('${position.latitude}, ${position.longitude}');
+        _position.sink.add(position);
+      });
+    } on Exception catch (error) {
+      _position.sink.addError(error);
+    }
   }
 
-  void init() async {
-    final String mapMode = await getMapMode();
-
+  Future<void> init() async {
+    final mapMode = await getMapMode();
     try {
-      final String mapFileData =
-      await Utils.getFileData('assets/$mapMode.json');
+      final mapFileData = await Utils.getFileData('assets/$mapMode.json');
       _mapMode.sink.add(mapFileData);
     } catch (_) {
       _mapMode.sink.add('');
     }
   }
 
-  void changeMapMode(String mode) async {
+  Future<void> changeMapMode(String mode) async {
     await saveMapMode(mode);
-    init();
+    await init();
   }
 
-  @override
+  Future<void> _setupPermissions() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return Future.error('Location services are disabled.');
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error('Location permissions are permanently denied.');
+    }
+  }
+
   void dispose() {
     _position.close();
     _mapMode.close();
