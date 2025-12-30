@@ -1,5 +1,6 @@
 [
   {
+    "featureType": "all",
     "elementType": "geometry",
     "stylers": [
       {
@@ -8,6 +9,7 @@
     ]
   },
   {
+    "featureType": "all",
     "elementType": "labels.text.fill",
     "stylers": [
       {
@@ -16,6 +18,7 @@
     ]
   },
   {
+    "featureType": "all",
     "elementType": "labels.text.stroke",
     "stylers": [
       {
