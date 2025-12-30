@@ -116,10 +116,7 @@ class _SearchPlaceViewState extends State<SearchPlaceView> {
     );
 
     if (result != null) {
-      _returnToMapScreen(
-        result.formattedAddress ?? '',
-        (lat: result.latitude, lng: result.longitude),
-      );
+      _returnToMapScreen(result.formattedAddress ?? '', result.position);
     }
   }
 

@@ -12,17 +12,14 @@ class RouteData extends Equatable {
   List<Object?> get props => [bounds, km, eta];
 }
 
-class DragMapData extends Equatable {
-  const DragMapData({
-    required this.latitude,
-    required this.longitude,
-    this.formattedAddress,
-  });
+typedef Position = ({double lat, double lng});
 
-  final double latitude;
-  final double longitude;
+class DragMapData extends Equatable {
+  const DragMapData({required this.position, this.formattedAddress});
+
+  final Position position;
   final String? formattedAddress;
 
   @override
-  List<Object?> get props => [latitude, longitude, formattedAddress];
+  List<Object?> get props => [position, formattedAddress];
 }
