@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_maps_app/core/client/maps_client.dart';
 import 'package:flutter_maps_app/core/model/map_models.dart';
-import 'package:flutter_maps_app/features/drag_map/presentation/view/drag_map_screen.dart';
+import 'package:flutter_maps_app/features/drag_map/presentation/view/drag_map_view.dart';
 import 'package:flutter_maps_app/features/search_place/presentation/bloc/search_place_bloc.dart';
 import 'package:google_maps_webservice/places.dart';
 
@@ -111,7 +111,7 @@ class _SearchPlaceViewState extends State<SearchPlaceView> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute<DragMapData>(
-        builder: (_) => DragMapScreen(lat: widget.lat, lng: widget.lng),
+        builder: (_) => DragMapPage(lat: widget.lat, lng: widget.lng),
       ),
     );
 
