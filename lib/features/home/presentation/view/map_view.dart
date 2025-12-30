@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_maps_app/core/bloc/settings_bloc.dart';
 import 'package:flutter_maps_app/core/client/maps_client.dart';
+import 'package:flutter_maps_app/core/model/map_models.dart';
 import 'package:flutter_maps_app/features/home/presentation/bloc/map_bloc.dart';
 import 'package:flutter_maps_app/features/search_place/presentation/view/search_place_view.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -92,7 +93,7 @@ class _MapViewState extends State<MapView> {
                             myLocationEnabled: true,
                             mapToolbarEnabled: false,
                             myLocationButtonEnabled: false,
-                            style: state.mapMode,
+                            style: state.mapModeStyle,
                             onMapCreated: (controller) {
                               _googleMapController = controller;
                             },
@@ -255,15 +256,15 @@ class _MapViewState extends State<MapView> {
   }
 
   Future<void> _showModalBottomSheet() async {
-    final result = await showModalBottomSheet<String>(
+    final result = await showModalBottomSheet<MapMode>(
       context: context,
       builder: (_) {
-        final mapModes = <({String text, String mode})>[
-          (text: 'Night', mode: 'night_mode'),
-          (text: 'Night Blue', mode: 'night_blue_mode'),
-          (text: 'Personal', mode: 'personal_mode'),
-          (text: 'Uber', mode: 'uber_mode'),
-          (text: 'Default', mode: ''),
+        final mapModes = <({String text, MapMode mode})>[
+          (text: 'Night', mode: .night),
+          (text: 'Night Blue', mode: .nightBlue),
+          (text: 'Personal', mode: .personal),
+          (text: 'Uber', mode: .uber),
+          (text: 'Default', mode: .none),
         ];
 
         return Padding(

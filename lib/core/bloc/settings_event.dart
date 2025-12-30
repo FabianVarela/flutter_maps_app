@@ -18,7 +18,7 @@ class InitMapModeEvent extends SingleEvent {
 class ChangeMapModeEvent extends SingleEvent {
   const ChangeMapModeEvent(this.mode);
 
-  final String mode;
+  final MapMode mode;
 
   @override
   List<Object?> get props => [mode];

@@ -76,7 +76,7 @@ class _DragMapViewState extends State<DragMapView> {
               ),
               myLocationEnabled: true,
               myLocationButtonEnabled: false,
-              style: singleState.mapMode,
+              style: singleState.mapModeStyle,
               onMapCreated: _onMapCreated,
               onCameraMove: (position) {
                 if (!dragMapState.isFirstTime) {

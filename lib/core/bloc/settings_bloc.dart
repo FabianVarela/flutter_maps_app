@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_maps_app/core/client/preferences.dart';
+import 'package:flutter_maps_app/core/model/map_models.dart';
 import 'package:geolocator/geolocator.dart';
 
 part 'settings_event.dart';
@@ -63,16 +64,24 @@ class SingleBloc extends Bloc<SingleEvent, SingleState> {
     emit(state.copyWith(isLoadingMapMode: true, clearError: true));
 
     try {
+      final currentMapMode = MapMode.values.byName(mapMode);
       emit(
         state.copyWith(
-          mapMode: await rootBundle.loadString('assets/$mapMode.json'),
+          mapModeStyle: switch (currentMapMode.filePath.isEmpty) {
+            true => '',
+            false => await rootBundle.loadString(currentMapMode.filePath),
+          },
           isLoadingMapMode: false,
           clearError: true,
         ),
       );
     } on Exception catch (_) {
       emit(
-        state.copyWith(mapMode: '', isLoadingMapMode: false, clearError: true),
+        state.copyWith(
+          mapModeStyle: '',
+          isLoadingMapMode: false,
+          clearError: true,
+        ),
       );
     }
   }
@@ -84,12 +93,12 @@ class SingleBloc extends Bloc<SingleEvent, SingleState> {
     emit(state.copyWith(isLoadingMapMode: true, clearError: true));
 
     try {
-      await preferences.saveMapMode(event.mode);
+      await preferences.saveMapMode(event.mode.name);
       emit(
         state.copyWith(
-          mapMode: switch (event.mode.isEmpty) {
+          mapModeStyle: switch (event.mode.filePath.isEmpty) {
             true => '',
-            false => await rootBundle.loadString('assets/${event.mode}.json'),
+            false => await rootBundle.loadString(event.mode.filePath),
           },
           isLoadingMapMode: false,
           clearError: true,
@@ -98,7 +107,7 @@ class SingleBloc extends Bloc<SingleEvent, SingleState> {
     } on Exception catch (error) {
       emit(
         state.copyWith(
-          mapMode: '',
+          mapModeStyle: '',
           isLoadingMapMode: false,
           errorMessage: 'Failed to change map mode: $error',
         ),
