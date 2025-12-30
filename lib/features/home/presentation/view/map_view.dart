@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_maps_app/core/bloc/settings_bloc.dart';
 import 'package:flutter_maps_app/core/client/maps_client.dart';
 import 'package:flutter_maps_app/features/home/presentation/bloc/map_bloc.dart';
-import 'package:flutter_maps_app/features/search_place/presentation/view/search_place_screen.dart';
+import 'package:flutter_maps_app/features/search_place/presentation/view/search_place_view.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/directions.dart' as directions;
 
@@ -23,10 +23,10 @@ class MapView extends StatefulWidget {
   const MapView({super.key});
 
   @override
-  State<MapView> createState() => _MapScreenState();
+  State<MapView> createState() => _MapViewState();
 }
 
-class _MapScreenState extends State<MapView> {
+class _MapViewState extends State<MapView> {
   bool _isRouteActivated = false;
   GoogleMapController? _googleMapController;
 
@@ -184,16 +184,22 @@ class _MapScreenState extends State<MapView> {
     final origin = context.read<MapBloc>().state.origin;
     if (origin == null) return;
 
-    final data = await Navigator.push(
+    final result = await Navigator.push(
       context,
       MaterialPageRoute<List<dynamic>>(
-        builder: (_) => SearchPlaceScreen(lat: origin.lat, lng: origin.lng),
+        builder: (_) => SearchPlacePage(lat: origin.lat, lng: origin.lng),
       ),
     );
 
-    if (data != null && mounted) {
+    if (result != null && mounted) {
       context.read<MapBloc>().add(const ClearMapEvent());
-      _goToDestination();
+      context.read<MapBloc>().add(
+        SetDestinationMarkerEvent(
+          lat: result[1] as double,
+          lng: result[2] as double,
+        ),
+      );
+      Future.delayed(const Duration(seconds: 1), _goToDestination);
     }
   }
 
@@ -219,10 +225,6 @@ class _MapScreenState extends State<MapView> {
       CameraUpdate.newCameraPosition(
         CameraPosition(target: currentLatLng, zoom: 16, bearing: 90, tilt: 45),
       ),
-    );
-
-    context.read<MapBloc>().add(
-      SetDestinationMarkerEvent(lat: destination.lat, lng: destination.lng),
     );
   }
 
