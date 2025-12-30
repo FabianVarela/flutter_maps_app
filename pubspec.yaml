@@ -8,6 +8,7 @@ environment:
 
 dependencies:
   bloc: ^9.1.0
+  bloc_concurrency: ^0.3.0
   equatable: ^2.0.7
   flutter:
     sdk: flutter
@@ -16,6 +17,7 @@ dependencies:
   google_maps_flutter: ^2.14.0
   google_maps_webservice: ^0.0.19
   shared_preferences: ^2.5.4
+  stream_transform: ^2.1.1
 
 dev_dependencies:
   flutter_test:
