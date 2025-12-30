@@ -15,8 +15,6 @@ class SearchPlaceScreen extends StatefulWidget {
 }
 
 class _SearchPlaceScreenState extends State<SearchPlaceScreen> {
-  final _searchPlaceBloc = SearchPlaceBloc();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,21 +26,21 @@ class _SearchPlaceScreenState extends State<SearchPlaceScreen> {
             child: TextField(
               decoration: const InputDecoration(hintText: 'Type the address'),
               onChanged: (value) {
-                _searchPlaceBloc.searchPlace(value, widget.lat, widget.lng);
+                searchPlaceBloc.searchPlace(value, widget.lat, widget.lng);
               },
             ),
           ),
           Padding(
             padding: const .only(top: 20),
             child: StreamBuilder<bool>(
-              stream: _searchPlaceBloc.isLoading,
+              stream: searchPlaceBloc.isLoading,
               builder: (_, loadingSnapshot) {
                 if (loadingSnapshot.hasData) {
                   if (loadingSnapshot.data ?? false) {
                     return const Center(child: CircularProgressIndicator());
                   } else {
                     return StreamBuilder<List<PlacesSearchResult>>(
-                      stream: _searchPlaceBloc.placeList,
+                      stream: searchPlaceBloc.placeList,
                       builder: (_, placesSnapshot) {
                         if (placesSnapshot.hasData) {
                           if (placesSnapshot.data!.isNotEmpty) {

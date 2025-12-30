@@ -15,9 +15,7 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  final _mapBloc = MapBloc();
-
-  bool _isRoteActivated = false;
+  bool _isRouteActivated = false;
 
   late GoogleMapController? _googleMapController;
 
@@ -47,7 +45,7 @@ class _MapScreenState extends State<MapScreen> {
             _originLng = positionSnapshot.data!.longitude;
 
             if (_originLat != null && _originLng != null) {
-              _mapBloc.setOriginMarkers(_originLat!, _originLng!);
+              mapBloc.setOriginMarkers(_originLat!, _originLng!);
               return _setFullMap();
             } else {
               return SizedBox(
@@ -99,14 +97,14 @@ class _MapScreenState extends State<MapScreen> {
         size: Size(size.width, size.height),
         child: StreamBuilder<Map<MarkerId, Marker>>(
           initialData: const <MarkerId, Marker>{},
-          stream: _mapBloc.markerList,
+          stream: mapBloc.markerList,
           builder: (_, mapSnapshot) => StreamBuilder<Map<PolylineId, Polyline>>(
             initialData: const <PolylineId, Polyline>{},
-            stream: _mapBloc.polylineList,
+            stream: mapBloc.polylineList,
             builder: (_, polylineSnapshot) => StreamBuilder<RouteData?>(
-              stream: _mapBloc.routeData,
+              stream: mapBloc.routeData,
               builder: (_, routeSnapshot) {
-                if (polylineSnapshot.hasData && _isRoteActivated) {
+                if (polylineSnapshot.hasData && _isRouteActivated) {
                   if (polylineSnapshot.data != null) {
                     _setFixCamera(routeSnapshot.data!.bounds);
                   }
@@ -189,10 +187,12 @@ class _MapScreenState extends State<MapScreen> {
     );
 
     if (data != null) {
-      _mapBloc.clearMap();
+      mapBloc.clearMap();
 
-      _destinationLat = data[1] as double;
-      _destinationLng = data[2] as double;
+      setState(() {
+        _destinationLat = data[1] as double;
+        _destinationLng = data[2] as double;
+      });
 
       if (kDebugMode) {
         print('d lat: $_destinationLat --- d lng: $_destinationLng');
@@ -211,7 +211,7 @@ class _MapScreenState extends State<MapScreen> {
 
   void _goToDestination() {
     if (_destinationLat != null && _destinationLng != null) {
-      _isRoteActivated = false;
+      _isRouteActivated = false;
 
       final currentLatLng = LatLng(_destinationLat!, _destinationLng!);
       final cameraPosition = CameraUpdate.newCameraPosition(
@@ -219,13 +219,13 @@ class _MapScreenState extends State<MapScreen> {
       );
 
       _googleMapController?.animateCamera(cameraPosition);
-      _mapBloc.setDestinationMarker(_destinationLat!, _destinationLng!);
+      mapBloc.setDestinationMarker(_destinationLat!, _destinationLng!);
     }
   }
 
   void _setRoutePolyline() {
-    _isRoteActivated = true;
-    _mapBloc.setPolyline(
+    _isRouteActivated = true;
+    mapBloc.setPolyline(
       (lat: _originLat!, lng: _originLng!),
       (lat: _destinationLat!, lng: _destinationLng!),
       Colors.blue,

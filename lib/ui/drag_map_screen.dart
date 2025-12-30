@@ -16,8 +16,6 @@ class DragMapScreen extends StatefulWidget {
 }
 
 class _DragMapScreenState extends State<DragMapScreen> {
-  final DragMapBloc _dragMapBloc = DragMapBloc();
-
   late LatLng _position;
   late GoogleMapController? _googleMapController;
 
@@ -28,13 +26,13 @@ class _DragMapScreenState extends State<DragMapScreen> {
     super.initState();
 
     _position = LatLng(widget.lat, widget.lng);
-    _dragMapBloc.getInitialPosition(_position, _markerIdVal());
+    dragMapBloc.getInitialPosition(_position, _markerIdVal());
     singleBloc.init();
   }
 
   @override
   void dispose() {
-    _dragMapBloc.dispose();
+    dragMapBloc.dispose();
     super.dispose();
   }
 
@@ -47,13 +45,13 @@ class _DragMapScreenState extends State<DragMapScreen> {
         size: Size(size.width, size.height),
         child: StreamBuilder<Map<MarkerId, Marker>>(
           initialData: const <MarkerId, Marker>{},
-          stream: _dragMapBloc.markerList,
+          stream: dragMapBloc.markerList,
           builder: (_, markerSnapShot) => StreamBuilder<String>(
             initialData: '',
             stream: singleBloc.mapMode,
             builder: (_, mapModeSnapshot) => StreamBuilder<bool>(
               initialData: false,
-              stream: _dragMapBloc.isFirstTime,
+              stream: dragMapBloc.isFirstTime,
               builder: (_, firstTimeSnapshot) {
                 if (!markerSnapShot.hasData) return const Offstage();
 
@@ -71,13 +69,13 @@ class _DragMapScreenState extends State<DragMapScreen> {
                     if (firstTimeSnapshot.data == false) {
                       if (markerSnapShot.data!.isNotEmpty) {
                         _position = position.target;
-                        _dragMapBloc.dragMarker(_position, _markerIdVal());
+                        dragMapBloc.dragMarker(_position, _markerIdVal());
                       }
                     }
                   },
                   onCameraIdle: () {
                     if (firstTimeSnapshot.data == false) {
-                      _dragMapBloc.getAddress(
+                      dragMapBloc.getAddress(
                         _position.latitude,
                         _position.longitude,
                       );
@@ -101,7 +99,7 @@ class _DragMapScreenState extends State<DragMapScreen> {
             child: const Icon(Icons.my_location),
           ),
           StreamBuilder<DragMapData>(
-            stream: _dragMapBloc.dragMapData,
+            stream: dragMapBloc.dragMapData,
             builder: (_, dragMapDataSnapshot) => FloatingActionButton(
               heroTag: 'Ok position',
               onPressed: (dragMapDataSnapshot.hasData)

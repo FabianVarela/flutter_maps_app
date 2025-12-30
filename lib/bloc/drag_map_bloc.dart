@@ -1,8 +1,12 @@
+import 'package:flutter_maps_app/core/client/maps_client.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_maps_webservice/geocoding.dart';
 import 'package:rxdart/rxdart.dart';
 
 class DragMapBloc {
+  DragMapBloc({required this.mapsClient});
+
+  final MapsClient mapsClient;
+
   final _markers = <MarkerId, Marker>{};
 
   final _isFirstTime = BehaviorSubject<bool>();
@@ -44,21 +48,12 @@ class DragMapBloc {
   }
 
   Future<void> getAddress(double lat, double lng) async {
-    final geoCoding = GoogleMapsGeocoding(
-      apiKey: const String.fromEnvironment('GOOGLE_MAPS_API_KEY'),
-    );
-    final response = await geoCoding.searchByLocation(
-      Location(lat: lat, lng: lng),
-    );
+    final positionParams = (lat: lat, lng: lng);
+    final address = await mapsClient.getAddressFromPosition(positionParams);
 
-    if (response.results.isNotEmpty) {
-      final formattedAddress = response.results[0].formattedAddress;
+    if (address != null) {
       _dragMapData.sink.add(
-        DragMapData(
-          latitude: lat,
-          longitude: lng,
-          formattedAddress: formattedAddress,
-        ),
+        DragMapData(latitude: lat, longitude: lng, formattedAddress: address),
       );
     }
   }
@@ -69,6 +64,8 @@ class DragMapBloc {
     _dragMapData.close();
   }
 }
+
+final dragMapBloc = DragMapBloc(mapsClient: MapsClient());
 
 class DragMapData {
   DragMapData({

@@ -1,7 +1,12 @@
+import 'package:flutter_maps_app/core/client/maps_client.dart';
 import 'package:google_maps_webservice/places.dart';
 import 'package:rxdart/rxdart.dart';
 
 class SearchPlaceBloc {
+  SearchPlaceBloc({required this.mapsClient});
+
+  final MapsClient mapsClient;
+
   final _placeList = BehaviorSubject<List<PlacesSearchResult>>();
 
   final _isLoading = BehaviorSubject<bool>();
@@ -12,19 +17,9 @@ class SearchPlaceBloc {
 
   Future<void> searchPlace(String value, double lat, double lng) async {
     _isLoading.sink.add(true);
+    final place = await mapsClient.searchPlace(value, (lat: lat, lng: lng));
 
-    final places = GoogleMapsPlaces(
-      apiKey: const String.fromEnvironment('GOOGLE_MAPS_API_KEY'),
-    );
-    final result = await places.searchByText(
-      value,
-      location: Location(lat: lat, lng: lng),
-      radius: 1000,
-    );
-
-    _placeList.sink.add(
-      result.status == 'OK' ? result.results : <PlacesSearchResult>[],
-    );
+    _placeList.sink.add(place);
     _isLoading.sink.add(false);
   }
 
@@ -33,3 +28,5 @@ class SearchPlaceBloc {
     _isLoading.close();
   }
 }
+
+final searchPlaceBloc = SearchPlaceBloc(mapsClient: MapsClient());

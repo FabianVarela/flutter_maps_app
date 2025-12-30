@@ -1,10 +1,15 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_maps_app/common/preferences.dart';
-import 'package:flutter_maps_app/common/utils.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_maps_app/core/client/preferences.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class SingleBloc with Preferences {
+class SingleBloc {
+  SingleBloc({required this.preferences});
+
+  final Preferences preferences;
+
   static const _locationSettings = LocationSettings(
     accuracy: LocationAccuracy.high,
     distanceFilter: 10,
@@ -33,9 +38,11 @@ class SingleBloc with Preferences {
   }
 
   Future<void> init() async {
-    final mapMode = await getMapMode();
+    final mapMode = preferences.getMapMode();
+    if (mapMode == null) return;
+
     try {
-      final mapFileData = await Utils.getFileData('assets/$mapMode.json');
+      final mapFileData = await rootBundle.loadString('assets/$mapMode.json');
       _mapMode.sink.add(mapFileData);
     } catch (_) {
       _mapMode.sink.add('');
@@ -43,7 +50,7 @@ class SingleBloc with Preferences {
   }
 
   Future<void> changeMapMode(String mode) async {
-    await saveMapMode(mode);
+    await preferences.saveMapMode(mode);
     await init();
   }
 
@@ -73,4 +80,11 @@ class SingleBloc with Preferences {
   }
 }
 
-final SingleBloc singleBloc = SingleBloc();
+late SingleBloc singleBloc;
+
+Future<void> initSingleBloc() async {
+  final sharedPreferences = await SharedPreferences.getInstance();
+  singleBloc = SingleBloc(
+    preferences: Preferences(preferences: sharedPreferences),
+  );
+}

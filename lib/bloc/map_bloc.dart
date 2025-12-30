@@ -1,11 +1,15 @@
 import 'dart:ui';
 
-import 'package:flutter_maps_app/common/utils.dart';
+import 'package:flutter_maps_app/core/client/maps_client.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/directions.dart' as ws;
 import 'package:rxdart/rxdart.dart';
 
 class MapBloc {
+  MapBloc({required this.mapsClient});
+
+  final MapsClient mapsClient;
+
   final _markers = <MarkerId, Marker>{};
   final _polyLines = <PolylineId, Polyline>{};
 
@@ -54,26 +58,15 @@ class MapBloc {
     ({double lat, double lng}) destination,
     Color polylineColor,
   ) async {
-    final directions = ws.GoogleMapsDirections(
-      apiKey: const String.fromEnvironment('GOOGLE_MAPS_API_KEY'),
+    final direction = await mapsClient.getDirectionsFromPositions(
+      origin,
+      destination,
     );
-    final response = await directions.directionsWithLocation(
-      ws.Location(lat: origin.lat, lng: origin.lng),
-      ws.Location(lat: destination.lat, lng: destination.lng),
-      travelMode: ws.TravelMode.driving,
-      trafficModel: ws.TrafficModel.pessimistic,
-      departureTime: DateTime.now(),
-    );
-
-    final steps = response.routes[0].legs[0].steps;
-    final eta = response.routes[0].legs[0].duration.text;
-    final km = response.routes[0].legs[0].distance.text;
-    final bounds = response.routes[0].bounds;
+    if (direction == null) return;
 
     final pointList = <LatLng>[];
-
-    for (final step in steps) {
-      Utils.decodePolyLine(step.polyline.points).forEach(pointList.add);
+    for (final step in direction.steps) {
+      _decodePolyLine(step.polyline.points).forEach(pointList.add);
     }
 
     const polyId = PolylineId('polyline');
@@ -85,7 +78,9 @@ class MapBloc {
     );
 
     _polylineList.sink.add(_polyLines);
-    _routeData.sink.add(RouteData(bounds: bounds, km: km, eta: eta));
+    _routeData.sink.add(
+      RouteData(bounds: direction.bounds, km: direction.km, eta: direction.eta),
+    );
   }
 
   void clearMap() {
@@ -98,7 +93,49 @@ class MapBloc {
     _polylineList.close();
     _routeData.close();
   }
+
+  List<LatLng> _decodePolyLine(String encoded) {
+    final poly = <LatLng>[];
+    final len = encoded.length;
+
+    var index = 0;
+    var lat = 0;
+    var lng = 0;
+
+    while (index < len) {
+      int b;
+      var shift = 0;
+      var result = 0;
+
+      do {
+        b = encoded.codeUnitAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+
+      final dLat = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
+      lat += dLat;
+      shift = 0;
+      result = 0;
+
+      do {
+        b = encoded.codeUnitAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+
+      final dLng = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
+      lng += dLng;
+
+      final p = LatLng(lat.toDouble() / 1E5, lng.toDouble() / 1E5);
+      poly.add(p);
+    }
+
+    return poly;
+  }
 }
+
+final mapBloc = MapBloc(mapsClient: MapsClient());
 
 class RouteData {
   RouteData({required this.bounds, required this.km, required this.eta});
