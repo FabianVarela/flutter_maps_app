@@ -86,6 +86,7 @@ This project requires Google Maps API keys for Android, iOS, and Web.
 The necessary permissions are already configured in `android/app/src/main/AndroidManifest.xml`:
 
 ```xml
+
 <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 ```
@@ -95,6 +96,7 @@ The necessary permissions are already configured in `android/app/src/main/Androi
 Add location permissions to `ios/Runner/Info.plist`:
 
 ```xml
+
 <key>NSLocationWhenInUseUsageDescription</key>
 <string>This app needs access to your location to show your position on the map</string>
 <key>NSLocationAlwaysUsageDescription</key>
