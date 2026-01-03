@@ -69,12 +69,7 @@ This project requires Google Maps API keys for Android, iOS, and Web.
 
 #### Configure Web
 
-1. Open `web/index.html`
-2. Add the Google Maps JavaScript API script with your API key:
-   ```html
-   <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_WEB_API_KEY_HERE"></script>
-   ```
-3. Restrict the Web API key to:
+1. Restrict the Web API key to:
     - Maps JavaScript API
     - Places API
     - HTTP referrers (add your website URLs)
