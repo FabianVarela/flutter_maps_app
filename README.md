@@ -44,7 +44,8 @@ This project requires Google Maps API keys for Android, iOS, and Web.
     - Maps SDK for iOS
     - Maps JavaScript API
     - Places API
-    - Geolocation API
+    - Directions API
+    - Geocoding API
 
 #### Generate API Keys
 
@@ -72,7 +73,15 @@ This project requires Google Maps API keys for Android, iOS, and Web.
 1. Restrict the Web API key to:
     - Maps JavaScript API
     - Places API
+    - Directions API
+    - Geocoding API
     - HTTP referrers (add your website URLs)
+
+2. The Web platform uses `--dart-define` to pass the API key securely:
+    - The key is loaded dynamically at runtime via Dart code
+    - Never hardcode the API key in `web/index.html`
+    - See the [Final Recommendations](#final-recommendations) section for detailed security
+      practices
 
 ### 4. Configure Location Permissions
 
@@ -121,37 +130,39 @@ flutter gen-l10n
 
 ### Run the application
 
+**Important:** Always pass the Google Maps API key using `--dart-define`:
+
 ```bash
-flutter run
+flutter run --dart-define-from-file=config-keys.json
 ```
 
 ### Run on specific platform
 
 ```bash
 # Android
-flutter run -d android
+flutter run -d android --dart-define-from-file=config-keys.json
 
 # iOS
-flutter run -d iPhone
+flutter run -d iPhone --dart-define-from-file=config-keys.json
 
-# Web
-flutter run -d chrome
+# Web (development)
+flutter run -d chrome --dart-define-from-file=config-keys.json
 ```
 
 ### Build for production
 
 ```bash
 # Android (App Bundle)
-flutter build appbundle
+flutter build appbundle --dart-define-from-file=config-keys.json
 
 # Android (APK)
-flutter build apk
+flutter build apk --dart-define-from-file=config-keys.json
 
 # iOS
-flutter build ios
+flutter build ios --dart-define-from-file=config-keys.json
 
-# Web
-flutter build web
+# Web (production - use production key with domain restrictions)
+flutter build web --dart-define-from-file=config-keys.json
 ```
 
 ## Project Structure
@@ -406,7 +417,7 @@ Web uses browser's Geolocation API, which prompts user for permission automatica
 1. **Check API Key**: Verify API key is correctly configured
 2. **Enable APIs**: Ensure required APIs are enabled in Google Cloud Console
 3. **Billing**: Verify billing is enabled for your Google Cloud project
-4. **Restrictions**: Check API key restrictions aren't Blocking requests
+4. **Restrictions**: Check API key restrictions aren't blocking requests
 5. **Platform**: Confirm API key is configured for the correct platform
 
 ### Location not working
@@ -540,21 +551,84 @@ The app follows the Bloc (Business Logic Component) pattern:
 - **Rotation**: Regularly rotate API keys
 - **Monitoring**: Monitor API usage for anomalies
 
-## Testing Strategy
+### Final Recommendations
 
-### Unit Tests
+**Important:** For client-side applications (web), the Google Maps API key will be visible in the compiled JavaScript.
+This is **normal and expected** for frontend apps. Google provides proper security mechanisms to protect your key:
 
-- Bloc event/state testing with Bloc_test
-- Repository method testing
-- Service integration testing
-- Model validation testing
+#### 1. Configure API Key Restrictions in Google Cloud Console
 
-### Widget Tests
+**Application Restrictions** (Critical):
 
-- Widget rendering tests
-- User interaction tests
-- Map widget testing
-- State change verification
+```
+1. Go to Google Cloud Console → APIs & Services → Credentials
+2. Select your Web API key
+3. Under "Application restrictions", choose "HTTP referrers (websites)"
+4. Add your authorized domains:
+   - https://yourdomain.com/*
+   - https://*.yourdomain.com/*
+   - http://localhost:* (for development only)
+```
+
+**API Restrictions** (Required):
+
+```
+Enable ONLY the APIs you use:
+- Maps JavaScript API
+- Places API
+- Directions API
+- Geocoding API
+```
+
+#### 2. Use Separate Keys for Development and Production
+
+**Development:**
+
+```json
+{
+  "GOOGLE_MAPS_API_KEY": "dev_key_with_localhost"
+}
+```
+
+```bash
+# Run with development key (restricted to localhost)
+flutter run -d chrome --dart-define-from-file=config-keys.json
+```
+
+**Production:**
+
+```json
+{
+  "GOOGLE_MAPS_API_KEY": "prod_key_with_domain_restrictions"
+}
+```
+
+```bash
+# Build with production key (restricted to your domain)
+flutter build web --dart-define-from-file=config-keys.json
+```
+
+#### 3. Set Up Usage Quotas and Alerts
+
+1. In Google Cloud Console, go to "APIs & Services" → "Quotas"
+2. Set daily request limits for each API
+3. Configure billing alerts to notify you of unusual usage
+4. Review usage reports regularly in the Dashboard
+
+#### 4. Monitor API Usage
+
+- Enable detailed logging in Google Cloud Console
+- Set up alerts for unexpected usage spikes
+- Review the "APIs & Services → Dashboard" weekly
+- Check for unauthorized domains in the logs
+
+#### Why This Approach is Secure
+
+- The API key being visible in JavaScript is **by design** for client-side APIs
+- Security comes from **domain restrictions** and **API restrictions**, not from hiding the key
+- Even if someone copies your key, they cannot use it from unauthorized domains
+- Usage quotas prevent abuse and unexpected charges
+- This is the **official Google-recommended approach** for web applications
 
 ## License
 
