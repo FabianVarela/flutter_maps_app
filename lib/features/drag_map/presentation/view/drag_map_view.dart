@@ -69,6 +69,7 @@ class _DragMapViewState extends State<DragMapView> {
           },
           builder: (_, dragMapState) => BlocBuilder<SingleBloc, SingleState>(
             builder: (_, singleState) => GoogleMap(
+              key: ValueKey(singleState.mapModeStyle.hashCode),
               markers: Set<Marker>.of(dragMapState.markers.values),
               initialCameraPosition: CameraPosition(
                 target: _position,
@@ -76,7 +77,9 @@ class _DragMapViewState extends State<DragMapView> {
               ),
               myLocationEnabled: true,
               myLocationButtonEnabled: false,
-              style: singleState.mapModeStyle,
+              style: singleState.mapModeStyle.isEmpty
+                  ? null
+                  : singleState.mapModeStyle,
               onMapCreated: _onMapCreated,
               onCameraMove: (position) {
                 if (!dragMapState.isFirstTime) {

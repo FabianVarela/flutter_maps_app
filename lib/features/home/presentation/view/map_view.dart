@@ -82,6 +82,7 @@ class _MapViewState extends State<MapView> {
                       children: <Widget>[
                         if (origin != null)
                           GoogleMap(
+                            key: ValueKey(state.mapModeStyle.hashCode),
                             markers: Set<Marker>.of(mapState.markers.values),
                             polylines: Set<Polyline>.of(
                               mapState.polylines.values,
@@ -93,7 +94,9 @@ class _MapViewState extends State<MapView> {
                             myLocationEnabled: true,
                             mapToolbarEnabled: false,
                             myLocationButtonEnabled: false,
-                            style: state.mapModeStyle,
+                            style: state.mapModeStyle.isNotEmpty
+                                ? state.mapModeStyle
+                                : null,
                             onMapCreated: (controller) {
                               _googleMapController = controller;
                             },
