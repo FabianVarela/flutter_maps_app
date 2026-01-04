@@ -8,6 +8,8 @@ import 'package:flutter_maps_app/features/search_place/presentation/view/search_
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/directions.dart' as directions;
 
+part '../widgets/map_widget.dart';
+
 class MapPage extends StatelessWidget {
   const MapPage({super.key});
 
@@ -57,7 +59,7 @@ class _MapViewState extends State<MapView> {
             if (state.position != null) {
               return SizedBox.fromSize(
                 size: Size(size.width, size.height),
-                child: BlocConsumer<MapBloc, MapState>(
+                child: BlocListener<MapBloc, MapState>(
                   listener: (_, mapState) {
                     if (mapState.errorMessage != null) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -67,47 +69,19 @@ class _MapViewState extends State<MapView> {
                         ),
                       );
                     }
-                  },
-                  builder: (_, mapState) {
+
                     if (mapState.polylines.isNotEmpty && _isRouteActivated) {
                       if (mapState.routeData != null) {
                         _setFixCamera(mapState.routeData!.bounds);
                       }
                     }
-                    final origin = mapState.origin;
-
-                    return Stack(
-                      fit: .expand,
-                      children: <Widget>[
-                        if (origin != null)
-                          GoogleMap(
-                            key: ValueKey(state.mapModeStyle.hashCode),
-                            markers: Set<Marker>.of(mapState.markers.values),
-                            polylines: Set<Polyline>.of(
-                              mapState.polylines.values,
-                            ),
-                            initialCameraPosition: CameraPosition(
-                              target: LatLng(origin.lat, origin.lng),
-                              zoom: 15,
-                            ),
-                            myLocationEnabled: true,
-                            mapToolbarEnabled: false,
-                            myLocationButtonEnabled: false,
-                            style: state.mapModeStyle.isNotEmpty
-                                ? state.mapModeStyle
-                                : null,
-                            onMapCreated: (controller) {
-                              _googleMapController = controller;
-                            },
-                          ),
-                        if (mapState.isLoadingRoute)
-                          const ColoredBox(
-                            color: Colors.black26,
-                            child: Center(child: CircularProgressIndicator()),
-                          ),
-                      ],
-                    );
                   },
+                  child: MapWidget(
+                    onMapCreated: (controller) {
+                      _googleMapController = controller;
+                    },
+                    onGoToDestination: _goToDestination,
+                  ),
                 ),
               );
             } else if (state.errorMessage != null) {
@@ -141,16 +115,11 @@ class _MapViewState extends State<MapView> {
                 crossAxisAlignment: .end,
                 children: <Widget>[
                   FloatingActionButton(
-                    heroTag: 'Search',
-                    onPressed: _goToSearch,
-                    tooltip: 'Search',
-                    child: const Icon(Icons.search),
-                  ),
-                  FloatingActionButton(
                     heroTag: 'Location',
                     onPressed: _goToOrigin,
                     tooltip: 'Current location',
-                    child: const Icon(Icons.my_location),
+                    backgroundColor: const Color(0xFF4285F4),
+                    child: const Icon(Icons.my_location, color: Colors.white),
                   ),
                   if (mapState.destination != null) ...[
                     FloatingActionButton(
@@ -166,12 +135,6 @@ class _MapViewState extends State<MapView> {
                       child: const Icon(Icons.directions_car),
                     ),
                   ],
-                  FloatingActionButton(
-                    heroTag: 'settings',
-                    onPressed: _showModalBottomSheet,
-                    tooltip: 'Settings',
-                    child: const Icon(Icons.settings),
-                  ),
                 ],
               ),
             );
@@ -179,29 +142,6 @@ class _MapViewState extends State<MapView> {
         ),
       ),
     );
-  }
-
-  Future<void> _goToSearch() async {
-    final origin = context.read<MapBloc>().state.origin;
-    if (origin == null) return;
-
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute<List<dynamic>>(
-        builder: (_) => SearchPlacePage(lat: origin.lat, lng: origin.lng),
-      ),
-    );
-
-    if (result != null && mounted) {
-      context.read<MapBloc>().add(const ClearMapEvent());
-      context.read<MapBloc>().add(
-        SetDestinationMarkerEvent(
-          lat: result[1] as double,
-          lng: result[2] as double,
-        ),
-      );
-      Future.delayed(const Duration(seconds: 1), _goToDestination);
-    }
   }
 
   void _goToOrigin() {
@@ -253,46 +193,5 @@ class _MapViewState extends State<MapView> {
         40,
       ),
     );
-  }
-
-  Future<void> _showModalBottomSheet() async {
-    final result = await showModalBottomSheet<MapMode>(
-      context: context,
-      builder: (_) {
-        final mapModes = <({String text, MapMode mode})>[
-          (text: 'Night', mode: .night),
-          (text: 'Night Blue', mode: .nightBlue),
-          (text: 'Personal', mode: .personal),
-          (text: 'Uber', mode: .uber),
-          (text: 'Default', mode: .none),
-        ];
-
-        return Padding(
-          padding: const .all(40),
-          child: Column(
-            spacing: 5,
-            mainAxisSize: .min,
-            crossAxisAlignment: .stretch,
-            children: <Widget>[
-              const Padding(
-                padding: .only(bottom: 5),
-                child: Text('Selecciona una opción para el modo del mapa'),
-              ),
-              ...[
-                for (final item in mapModes)
-                  ElevatedButton(
-                    onPressed: () => Navigator.of(context).pop(item.mode),
-                    child: Text(item.text),
-                  ),
-              ],
-            ],
-          ),
-        );
-      },
-    );
-
-    if (result != null && mounted) {
-      context.read<SingleBloc>().add(ChangeMapModeEvent(result));
-    }
   }
 }
