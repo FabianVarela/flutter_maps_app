@@ -10,6 +10,8 @@ import 'package:google_maps_webservice/directions.dart' as directions;
 
 part '../widgets/map_widget.dart';
 
+part '../widgets/map_destination.dart';
+
 class MapPage extends StatelessWidget {
   const MapPage({super.key});
 
@@ -81,6 +83,8 @@ class _MapViewState extends State<MapView> {
                       _googleMapController = controller;
                     },
                     onGoToDestination: _goToDestination,
+                    onCalculateRoute: _setRoutePolyline,
+                    onClearMap: _clearMap,
                   ),
                 ),
               );
@@ -106,38 +110,15 @@ class _MapViewState extends State<MapView> {
         ),
         floatingActionButton: BlocSelector<SingleBloc, SingleState, bool>(
           selector: (state) => state.position != null,
-          builder: (_, state) {
-            if (!state) return const Offstage();
-            return BlocBuilder<MapBloc, MapState>(
-              builder: (_, mapState) => Column(
-                spacing: 5,
-                mainAxisAlignment: .end,
-                crossAxisAlignment: .end,
-                children: <Widget>[
-                  FloatingActionButton(
-                    heroTag: 'Location',
-                    onPressed: _goToOrigin,
-                    tooltip: 'Current location',
-                    backgroundColor: const Color(0xFF4285F4),
-                    child: const Icon(Icons.my_location, color: Colors.white),
-                  ),
-                  if (mapState.destination != null) ...[
-                    FloatingActionButton(
-                      heroTag: 'Directions',
-                      onPressed: _goToDestination,
-                      tooltip: 'Destination location',
-                      child: const Icon(Icons.directions),
-                    ),
-                    FloatingActionButton(
-                      heroTag: 'Directions car',
-                      onPressed: _setRoutePolyline,
-                      tooltip: 'Get route',
-                      child: const Icon(Icons.directions_car),
-                    ),
-                  ],
-                ],
-              ),
-            );
+          builder: (_, state) => switch (state) {
+            false => const Offstage(),
+            true => FloatingActionButton(
+              heroTag: 'Location',
+              onPressed: _goToOrigin,
+              tooltip: 'Current location',
+              backgroundColor: const Color(0xFF4285F4),
+              child: const Icon(Icons.my_location, color: Colors.white),
+            ),
           },
         ),
       ),
@@ -193,5 +174,11 @@ class _MapViewState extends State<MapView> {
         40,
       ),
     );
+  }
+
+  void _clearMap() {
+    _isRouteActivated = false;
+    context.read<MapBloc>().add(const ClearMapEvent());
+    _goToOrigin();
   }
 }

@@ -4,11 +4,15 @@ class MapWidget extends StatelessWidget {
   const MapWidget({
     required this.onMapCreated,
     required this.onGoToDestination,
+    required this.onCalculateRoute,
+    required this.onClearMap,
     super.key,
   });
 
   final ValueSetter<GoogleMapController>? onMapCreated;
   final VoidCallback onGoToDestination;
+  final VoidCallback onCalculateRoute;
+  final VoidCallback onClearMap;
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +98,15 @@ class MapWidget extends StatelessWidget {
               ),
             ),
           ],
+          if (state.destination != null)
+            Align(
+              alignment: .bottomCenter,
+              child: MapDestination(
+                onClearMap: onClearMap,
+                onGoToDestination: onGoToDestination,
+                onCalculateRoute: onCalculateRoute,
+              ),
+            ),
           if (state.isLoadingRoute)
             const ColoredBox(
               color: Colors.black26,
