@@ -42,21 +42,20 @@ class _MapViewState extends State<MapView> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.sizeOf(context);
-
-    return Scaffold(
-      body: BlocConsumer<SingleBloc, SingleState>(
-        listenWhen: (_, current) => current.position != null,
-        listener: (_, state) => context.read<MapBloc>().add(
-          SetOriginMarkerEvent(
-            lat: state.position!.latitude,
-            lng: state.position!.longitude,
-          ),
+    return BlocListener<SingleBloc, SingleState>(
+      listenWhen: (_, current) => current.position != null,
+      listener: (_, state) => context.read<MapBloc>().add(
+        SetOriginMarkerEvent(
+          lat: state.position!.latitude,
+          lng: state.position!.longitude,
         ),
-        builder: (_, state) {
-          if (state.position != null) {
-            return Scaffold(
-              body: SizedBox.fromSize(
+      ),
+      child: Scaffold(
+        body: BlocBuilder<SingleBloc, SingleState>(
+          builder: (_, state) {
+            final size = MediaQuery.sizeOf(context);
+            if (state.position != null) {
+              return SizedBox.fromSize(
                 size: Size(size.width, size.height),
                 child: BlocConsumer<MapBloc, MapState>(
                   listener: (_, mapState) {
@@ -110,76 +109,74 @@ class _MapViewState extends State<MapView> {
                     );
                   },
                 ),
-              ),
-              floatingActionButton: BlocBuilder<MapBloc, MapState>(
-                builder: (_, mapState) => Column(
-                  spacing: 5,
-                  mainAxisAlignment: .end,
-                  crossAxisAlignment: .end,
-                  children: <Widget>[
+              );
+            } else if (state.errorMessage != null) {
+              return SizedBox.fromSize(
+                size: Size(size.width, size.height),
+                child: Center(
+                  child: Text(
+                    state.errorMessage!,
+                    style: const TextStyle(fontSize: 25, color: Colors.red),
+                  ),
+                ),
+              );
+            } else {
+              return SizedBox.fromSize(
+                size: Size(size.width, size.height),
+                child: const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            }
+          },
+        ),
+        floatingActionButton: BlocSelector<SingleBloc, SingleState, bool>(
+          selector: (state) => state.position != null,
+          builder: (_, state) {
+            if (!state) return const Offstage();
+            return BlocBuilder<MapBloc, MapState>(
+              builder: (_, mapState) => Column(
+                spacing: 5,
+                mainAxisAlignment: .end,
+                crossAxisAlignment: .end,
+                children: <Widget>[
+                  FloatingActionButton(
+                    heroTag: 'Search',
+                    onPressed: _goToSearch,
+                    tooltip: 'Search',
+                    child: const Icon(Icons.search),
+                  ),
+                  FloatingActionButton(
+                    heroTag: 'Location',
+                    onPressed: _goToOrigin,
+                    tooltip: 'Current location',
+                    child: const Icon(Icons.my_location),
+                  ),
+                  if (mapState.destination != null) ...[
                     FloatingActionButton(
-                      heroTag: 'Search',
-                      onPressed: _goToSearch,
-                      tooltip: 'Search',
-                      child: const Icon(Icons.search),
+                      heroTag: 'Directions',
+                      onPressed: _goToDestination,
+                      tooltip: 'Destination location',
+                      child: const Icon(Icons.directions),
                     ),
                     FloatingActionButton(
-                      heroTag: 'Location',
-                      onPressed: _goToOrigin,
-                      tooltip: 'Current location',
-                      child: const Icon(Icons.my_location),
-                    ),
-                    if (mapState.destination != null) ...[
-                      FloatingActionButton(
-                        heroTag: 'Directions',
-                        onPressed: _goToDestination,
-                        tooltip: 'Destination location',
-                        child: const Icon(Icons.directions),
-                      ),
-                      FloatingActionButton(
-                        heroTag: 'Directions car',
-                        onPressed: _setRoutePolyline,
-                        tooltip: 'Get route',
-                        child: const Icon(Icons.directions_car),
-                      ),
-                    ],
-                    FloatingActionButton(
-                      heroTag: 'settings',
-                      onPressed: _showModalBottomSheet,
-                      tooltip: 'Settings',
-                      child: const Icon(Icons.settings),
+                      heroTag: 'Directions car',
+                      onPressed: _setRoutePolyline,
+                      tooltip: 'Get route',
+                      child: const Icon(Icons.directions_car),
                     ),
                   ],
-                ),
-              ),
-            );
-          } else if (state.errorMessage != null) {
-            return SizedBox(
-              width: size.width,
-              child: Center(
-                child: Text(
-                  state.errorMessage!,
-                  style: const TextStyle(fontSize: 25, color: Colors.red),
-                ),
-              ),
-            );
-          } else {
-            return SizedBox(
-              width: size.width,
-              child: const Column(
-                spacing: 20,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Text(
-                    'Loading map',
-                    style: TextStyle(fontSize: 25, color: Colors.blueAccent),
+                  FloatingActionButton(
+                    heroTag: 'settings',
+                    onPressed: _showModalBottomSheet,
+                    tooltip: 'Settings',
+                    child: const Icon(Icons.settings),
                   ),
-                  CircularProgressIndicator(),
                 ],
               ),
             );
-          }
-        },
+          },
+        ),
       ),
     );
   }
