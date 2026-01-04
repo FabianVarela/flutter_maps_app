@@ -52,6 +52,9 @@ class _DragMapViewState extends State<DragMapView> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
+    final mapModeStyle = context.select<SingleBloc, String>(
+      (bloc) => bloc.state.mapModeStyle,
+    );
 
     return Scaffold(
       body: SizedBox.fromSize(
@@ -67,44 +70,37 @@ class _DragMapViewState extends State<DragMapView> {
               );
             }
           },
-          builder: (_, dragMapState) => BlocBuilder<SingleBloc, SingleState>(
-            builder: (_, singleState) => GoogleMap(
-              key: ValueKey(singleState.mapModeStyle.hashCode),
-              markers: Set<Marker>.of(dragMapState.markers.values),
-              initialCameraPosition: CameraPosition(
-                target: _position,
-                zoom: 12,
-              ),
-              myLocationEnabled: true,
-              myLocationButtonEnabled: false,
-              style: singleState.mapModeStyle.isEmpty
-                  ? null
-                  : singleState.mapModeStyle,
-              onMapCreated: _onMapCreated,
-              onCameraMove: (position) {
-                if (!dragMapState.isFirstTime) {
-                  if (dragMapState.markers.isNotEmpty) {
-                    _position = position.target;
-                    context.read<DragMapBloc>().add(
-                      DragMarkerEvent(
-                        latLng: _position,
-                        idMarker: _markerIdValue(),
-                      ),
-                    );
-                  }
-                }
-              },
-              onCameraIdle: () {
-                if (!dragMapState.isFirstTime) {
+          builder: (_, dragMapState) => GoogleMap(
+            key: ValueKey(mapModeStyle.hashCode),
+            markers: Set<Marker>.of(dragMapState.markers.values),
+            initialCameraPosition: CameraPosition(target: _position, zoom: 12),
+            myLocationEnabled: true,
+            myLocationButtonEnabled: false,
+            style: mapModeStyle.isEmpty ? null : mapModeStyle,
+            onMapCreated: _onMapCreated,
+            onCameraMove: (position) {
+              if (!dragMapState.isFirstTime) {
+                if (dragMapState.markers.isNotEmpty) {
+                  _position = position.target;
                   context.read<DragMapBloc>().add(
-                    GetAddressEvent(
-                      lat: _position.latitude,
-                      lng: _position.longitude,
+                    DragMarkerEvent(
+                      latLng: _position,
+                      idMarker: _markerIdValue(),
                     ),
                   );
                 }
-              },
-            ),
+              }
+            },
+            onCameraIdle: () {
+              if (!dragMapState.isFirstTime) {
+                context.read<DragMapBloc>().add(
+                  GetAddressEvent(
+                    lat: _position.latitude,
+                    lng: _position.longitude,
+                  ),
+                );
+              }
+            },
           ),
         ),
       ),
