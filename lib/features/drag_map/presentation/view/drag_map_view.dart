@@ -7,6 +7,8 @@ import 'package:flutter_maps_app/core/client/maps_client.dart';
 import 'package:flutter_maps_app/features/drag_map/presentation/bloc/drag_map_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+part '../widgets/address_section.dart';
+
 class DragMapPage extends StatelessWidget {
   const DragMapPage({required this.lat, required this.lng, super.key});
 
@@ -42,8 +44,6 @@ class _DragMapViewState extends State<DragMapView> {
   void initState() {
     super.initState();
     _position = LatLng(widget.lat, widget.lng);
-
-    context.read<SingleBloc>().add(const InitMapModeEvent());
     context.read<DragMapBloc>().add(
       GetInitialPositionEvent(latLng: _position, idMarker: _markerIdValue()),
     );
@@ -51,81 +51,75 @@ class _DragMapViewState extends State<DragMapView> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.sizeOf(context);
     final mapModeStyle = context.select<SingleBloc, String>(
       (bloc) => bloc.state.mapModeStyle,
     );
 
-    return Scaffold(
-      body: SizedBox.fromSize(
-        size: Size(size.width, size.height),
-        child: BlocConsumer<DragMapBloc, DragMapState>(
-          listener: (_, state) {
-            if (state.errorMessage != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.errorMessage!),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            }
-          },
-          builder: (_, dragMapState) => GoogleMap(
-            key: ValueKey(mapModeStyle.hashCode),
-            markers: Set<Marker>.of(dragMapState.markers.values),
-            initialCameraPosition: CameraPosition(target: _position, zoom: 12),
-            myLocationEnabled: true,
-            myLocationButtonEnabled: false,
-            style: mapModeStyle.isEmpty ? null : mapModeStyle,
-            onMapCreated: _onMapCreated,
-            onCameraMove: (position) {
-              if (!dragMapState.isFirstTime) {
-                if (dragMapState.markers.isNotEmpty) {
-                  _position = position.target;
-                  context.read<DragMapBloc>().add(
-                    DragMarkerEvent(
-                      latLng: _position,
-                      idMarker: _markerIdValue(),
-                    ),
-                  );
-                }
-              }
-            },
-            onCameraIdle: () {
-              if (!dragMapState.isFirstTime) {
-                context.read<DragMapBloc>().add(
-                  GetAddressEvent(
-                    lat: _position.latitude,
-                    lng: _position.longitude,
-                  ),
-                );
-              }
-            },
+    return BlocListener<DragMapBloc, DragMapState>(
+      listener: (_, state) {
+        if (state.errorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage!),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF1E1E1E),
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF2C2C2C),
+          foregroundColor: Colors.white,
+          title: const Text(
+            'Confirmar Ubicación',
+            style: TextStyle(color: Colors.white, fontSize: 18),
           ),
         ),
-      ),
-      floatingActionButton: Column(
-        spacing: 5,
-        mainAxisAlignment: .end,
-        crossAxisAlignment: .end,
-        children: <Widget>[
-          FloatingActionButton(
-            heroTag: 'Location',
-            onPressed: _goToOrigin,
-            tooltip: 'Current location',
-            child: const Icon(Icons.my_location),
-          ),
-          BlocBuilder<DragMapBloc, DragMapState>(
-            builder: (_, state) => FloatingActionButton(
-              heroTag: 'Ok position',
-              onPressed: state.dragMapData != null
-                  ? () => Navigator.of(context).pop(state.dragMapData)
-                  : null,
-              tooltip: 'Continue with position',
-              child: const Icon(Icons.check),
+        body: Stack(
+          fit: .expand,
+          children: <Widget>[
+            BlocBuilder<DragMapBloc, DragMapState>(
+              builder: (_, state) => GoogleMap(
+                key: ValueKey(mapModeStyle.hashCode),
+                markers: Set<Marker>.of(state.markers.values),
+                initialCameraPosition: CameraPosition(
+                  target: _position,
+                  zoom: 12,
+                ),
+                myLocationEnabled: true,
+                zoomControlsEnabled: false,
+                myLocationButtonEnabled: false,
+                style: mapModeStyle.isEmpty ? null : mapModeStyle,
+                onMapCreated: _onMapCreated,
+                onCameraMove: (position) {
+                  if (!state.isFirstTime && state.markers.isNotEmpty) {
+                    _position = position.target;
+                    context.read<DragMapBloc>().add(
+                      DragMarkerEvent(
+                        latLng: _position,
+                        idMarker: _markerIdValue(),
+                      ),
+                    );
+                  }
+                },
+                onCameraIdle: () {
+                  if (state.isFirstTime) return;
+                  context.read<DragMapBloc>().add(
+                    GetAddressEvent(
+                      lat: _position.latitude,
+                      lng: _position.longitude,
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+            Align(
+              alignment: .bottomCenter,
+              child: _AddressSection(onGoToOrigin: _goToOrigin),
+            ),
+          ],
+        ),
       ),
     );
   }
