@@ -11,6 +11,7 @@ class MapState extends Equatable {
     this.errorMessage,
     this.origin,
     this.destination,
+    this.address,
   });
 
   factory MapState.initial() => const MapState();
@@ -22,6 +23,7 @@ class MapState extends Equatable {
   final String? errorMessage;
   final Position? origin;
   final Position? destination;
+  final String? address;
 
   MapState copyWith({
     Map<MarkerId, Marker>? markers,
@@ -31,6 +33,7 @@ class MapState extends Equatable {
     String? errorMessage,
     Position? origin,
     Position? destination,
+    String? address,
     bool clearRouteData = false,
     bool clearError = false,
     bool clearDestination = false,
@@ -43,6 +46,7 @@ class MapState extends Equatable {
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       origin: origin ?? this.origin,
       destination: clearDestination ? null : (destination ?? this.destination),
+      address: clearDestination ? null : (address ?? this.address),
     );
   }
 
@@ -55,5 +59,6 @@ class MapState extends Equatable {
     errorMessage,
     origin,
     destination,
+    address,
   ];
 }

@@ -61,6 +61,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
       state.copyWith(
         markers: updatedMarkers,
         destination: (lat: event.lat, lng: event.lng),
+        address: event.address,
       ),
     );
   }

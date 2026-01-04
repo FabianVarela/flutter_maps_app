@@ -18,13 +18,18 @@ class SetOriginMarkerEvent extends MapEvent {
 }
 
 class SetDestinationMarkerEvent extends MapEvent {
-  const SetDestinationMarkerEvent({required this.lat, required this.lng});
+  const SetDestinationMarkerEvent({
+    required this.lat,
+    required this.lng,
+    this.address,
+  });
 
   final double lat;
   final double lng;
+  final String? address;
 
   @override
-  List<Object?> get props => [lat, lng];
+  List<Object?> get props => [lat, lng, address];
 }
 
 class SetPolylineEvent extends MapEvent {
