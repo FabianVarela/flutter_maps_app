@@ -66,7 +66,7 @@ class SearchPlaceView extends HookWidget {
               controller: textController,
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                border: InputBorder.none,
+                border: .none,
                 fillColor: const Color(0xFF2C2C2C),
                 hintText: 'Buscar dirección o lugar...',
                 contentPadding: const .symmetric(horizontal: 16),
@@ -90,7 +90,7 @@ class SearchPlaceView extends HookWidget {
               onPressed: () => _onDragMap(context),
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
-                minimumSize: const Size.fromHeight(48),
+                minimumSize: const .fromHeight(48),
                 padding: const .symmetric(vertical: 14),
                 backgroundColor: const Color(0xFF4285F4),
                 shape: RoundedRectangleBorder(borderRadius: .circular(16)),
