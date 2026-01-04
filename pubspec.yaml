@@ -13,9 +13,10 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^9.1.1
+  flutter_hooks: ^0.21.3+1
   geolocator: ^14.0.2
   google_maps_flutter: ^2.14.0
-  google_maps_webservice: ^0.0.19
+  google_maps_webservice: ^0.0.20-nullsafety.5
   shared_preferences: ^2.5.4
   stream_transform: ^2.1.1
   web: ^1.1.1
