@@ -128,7 +128,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   void _onToggleTransport(
     ToggleTransportEvent event,
     Emitter<SettingsState> emit,
-  ) => emit(state.copyWith(showPublicTransport: event.show));
+  ) => emit(state.copyWith(showTransport: event.show));
 
   Future<void> _setupPermissions() async {
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();

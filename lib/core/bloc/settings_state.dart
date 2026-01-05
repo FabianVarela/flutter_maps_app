@@ -6,7 +6,7 @@ class SettingsState extends Equatable {
     this.mapMode = MapMode.none,
     this.mapModeStyle = '',
     this.showTraffic = false,
-    this.showPublicTransport = false,
+    this.showTransport = false,
     this.isLoadingPosition = false,
     this.isLoadingMapMode = false,
     this.errorMessage,
@@ -18,7 +18,7 @@ class SettingsState extends Equatable {
   final MapMode mapMode;
   final String mapModeStyle;
   final bool showTraffic;
-  final bool showPublicTransport;
+  final bool showTransport;
   final bool isLoadingPosition;
   final bool isLoadingMapMode;
   final String? errorMessage;
@@ -28,7 +28,7 @@ class SettingsState extends Equatable {
     MapMode? mapMode,
     String? mapModeStyle,
     bool? showTraffic,
-    bool? showPublicTransport,
+    bool? showTransport,
     bool? isLoadingPosition,
     bool? isLoadingMapMode,
     String? errorMessage,
@@ -39,7 +39,7 @@ class SettingsState extends Equatable {
       mapMode: mapMode ?? this.mapMode,
       mapModeStyle: mapModeStyle ?? this.mapModeStyle,
       showTraffic: showTraffic ?? this.showTraffic,
-      showPublicTransport: showPublicTransport ?? this.showPublicTransport,
+      showTransport: showTransport ?? this.showTransport,
       isLoadingPosition: isLoadingPosition ?? this.isLoadingPosition,
       isLoadingMapMode: isLoadingMapMode ?? this.isLoadingMapMode,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
@@ -52,7 +52,7 @@ class SettingsState extends Equatable {
     mapMode,
     mapModeStyle,
     showTraffic,
-    showPublicTransport,
+    showTransport,
     isLoadingPosition,
     isLoadingMapMode,
     errorMessage,
