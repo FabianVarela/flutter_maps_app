@@ -2,6 +2,8 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_maps_app/core/gen/assets.gen.dart';
 import 'package:google_maps_webservice/directions.dart';
 
+enum OptionSection { traffic, transport }
+
 enum MapMode { night, nightBlue, personal, uber, none }
 
 class RouteData extends Equatable {
@@ -34,5 +36,13 @@ extension MapModeX on MapMode {
     .personal => Assets.mapStyles.personalMode,
     .uber => Assets.mapStyles.uberMode,
     .none => '',
+  };
+
+  String get imagePath => switch (this) {
+    .night => Assets.images.nightMode,
+    .nightBlue => Assets.images.nightBlueMode,
+    .personal => Assets.images.personalMode,
+    .uber => Assets.images.uberMode,
+    .none => Assets.images.defaultMode,
   };
 }
