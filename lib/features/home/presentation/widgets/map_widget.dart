@@ -144,37 +144,13 @@ class MapWidget extends StatelessWidget {
   Future<void> _showModalBottomSheet(BuildContext context) async {
     final result = await showModalBottomSheet<MapMode>(
       context: context,
-      builder: (_) {
-        final mapModes = <({String text, MapMode mode})>[
-          (text: 'Night', mode: .night),
-          (text: 'Night Blue', mode: .nightBlue),
-          (text: 'Personal', mode: .personal),
-          (text: 'Uber', mode: .uber),
-          (text: 'Default', mode: .none),
-        ];
-
-        return Padding(
-          padding: const .all(40),
-          child: Column(
-            spacing: 5,
-            mainAxisSize: .min,
-            crossAxisAlignment: .stretch,
-            children: <Widget>[
-              const Padding(
-                padding: .only(bottom: 5),
-                child: Text('Selecciona una opción para el modo del mapa'),
-              ),
-              ...[
-                for (final item in mapModes)
-                  ElevatedButton(
-                    onPressed: () => Navigator.of(context).pop(item.mode),
-                    child: Text(item.text),
-                  ),
-              ],
-            ],
-          ),
-        );
-      },
+      showDragHandle: true,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF1E1E1E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: .vertical(top: .circular(20)),
+      ),
+      builder: (_) => const _MapStyleBottomSheet(),
     );
 
     if (result != null && context.mounted) {
