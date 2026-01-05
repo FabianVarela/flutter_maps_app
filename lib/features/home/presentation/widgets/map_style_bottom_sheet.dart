@@ -5,22 +5,24 @@ class _MapStyleBottomSheet extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentMapMode = context.select<SettingsBloc, MapMode>(
-      (bloc) => bloc.state.mapMode,
+    final (mapMode, showTraffic, showTransport) = context.select(
+      (SettingsBloc bloc) {
+        final state = bloc.state;
+        return (state.mapMode, state.showTraffic, state.showPublicTransport);
+      },
     );
-    final selectedMapMode = useState(currentMapMode);
+
+    final checkMapMode = useState(mapMode);
+    final checkTraffic = useState(showTraffic);
+    final checkTransport = useState(showTransport);
 
     const images = Assets.images;
-    final styleOptions = [
-      (title: 'Default', path: images.defaultMode, mode: MapMode.none),
-      (title: 'Night', path: images.nightMode, mode: MapMode.night),
-      (
-        title: 'Night blue',
-        path: images.nightBlueMode,
-        mode: MapMode.nightBlue,
-      ),
-      (title: 'Uber', path: images.uberMode, mode: MapMode.uber),
-      (title: 'Personal', path: images.personalMode, mode: MapMode.personal),
+    final styleOptions = <({String title, String path, MapMode mode})>[
+      (title: 'Default', path: images.defaultMode, mode: .none),
+      (title: 'Night', path: images.nightMode, mode: .night),
+      (title: 'Night blue', path: images.nightBlueMode, mode: .nightBlue),
+      (title: 'Uber', path: images.uberMode, mode: .uber),
+      (title: 'Personal', path: images.personalMode, mode: .personal),
     ];
 
     return SizedBox(
@@ -70,19 +72,26 @@ class _MapStyleBottomSheet extends HookWidget {
                       title: item.title,
                       imagePath: item.path,
                       mode: MapMode.none,
-                      isSelected: selectedMapMode.value == item.mode,
-                      onTap: () => selectedMapMode.value = item.mode,
+                      isSelected: checkMapMode.value == item.mode,
+                      onTap: () => checkMapMode.value = item.mode,
                     ),
                 ],
               ),
             ),
+            const Divider(color: Colors.white12, height: 1),
+            _MapOptionsSection(
+              showTraffic: checkTraffic.value,
+              showTransport: checkTransport.value,
+              onTrafficChanged: (value) => checkTraffic.value = value,
+              onTransportChanged: (value) => checkTransport.value = value,
+            ),
             ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop(selectedMapMode.value);
-              },
+              onPressed: () => Navigator.of(context).pop(
+                (checkMapMode.value, checkTraffic.value, checkTransport.value),
+              ),
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
-                minimumSize: const Size.fromHeight(48),
+                minimumSize: const .fromHeight(48),
                 padding: const .symmetric(vertical: 12),
                 backgroundColor: const Color(0xFF4285F4),
                 shape: RoundedRectangleBorder(borderRadius: .circular(12)),
@@ -136,7 +145,7 @@ class _MapStyleCard extends StatelessWidget {
                 children: <Widget>[
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(10),
+                      top: .circular(10),
                     ),
                     child: SizedBox.square(
                       dimension: .infinity,
@@ -147,11 +156,11 @@ class _MapStyleCard extends StatelessWidget {
                     const Align(
                       alignment: .topRight,
                       child: Padding(
-                        padding: EdgeInsets.all(10),
+                        padding: .all(10),
                         child: DecoratedBox(
                           decoration: BoxDecoration(
+                            shape: .circle,
                             color: Colors.white,
-                            shape: BoxShape.circle,
                           ),
                           child: Icon(
                             Icons.check_circle,
@@ -173,6 +182,64 @@ class _MapStyleCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+enum OptionSection { traffic, transport }
+
+class _MapOptionsSection extends StatelessWidget {
+  const _MapOptionsSection({
+    required this.showTraffic,
+    required this.showTransport,
+    required this.onTrafficChanged,
+    required this.onTransportChanged,
+  });
+
+  final bool showTraffic;
+  final bool showTransport;
+  final ValueChanged<bool> onTrafficChanged;
+  final ValueChanged<bool> onTransportChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        for (final item in [OptionSection.traffic, OptionSection.transport])
+          Row(
+            spacing: 12,
+            children: <Widget>[
+              Icon(
+                switch (item) {
+                  .traffic => Icons.traffic,
+                  .transport => Icons.directions_bus,
+                },
+                color: Colors.white70,
+              ),
+              Expanded(
+                child: Text(
+                  switch (item) {
+                    .traffic => 'Tráfico',
+                    .transport => 'Transporte público',
+                  },
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              ),
+              Switch(
+                value: switch (item) {
+                  .traffic => showTraffic,
+                  .transport => showTransport,
+                },
+                onChanged: (value) => switch (item) {
+                  .traffic => onTrafficChanged(value),
+                  .transport => onTransportChanged(value),
+                },
+                activeThumbColor: const Color(0xFF4285F4),
+                activeTrackColor: const Color(0xFF4285F4).withValues(alpha: .5),
+              ),
+            ],
+          ),
+      ],
     );
   }
 }

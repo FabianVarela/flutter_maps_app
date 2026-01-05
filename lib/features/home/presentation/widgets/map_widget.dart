@@ -142,7 +142,7 @@ class MapWidget extends StatelessWidget {
   }
 
   Future<void> _showModalBottomSheet(BuildContext context) async {
-    final result = await showModalBottomSheet<MapMode>(
+    final result = await showModalBottomSheet<(MapMode, bool, bool)>(
       context: context,
       showDragHandle: true,
       isScrollControlled: true,
@@ -154,7 +154,11 @@ class MapWidget extends StatelessWidget {
     );
 
     if (result != null && context.mounted) {
-      context.read<SettingsBloc>().add(ChangeMapModeEvent(result));
+      final (mapMode, traffic, transport) = result;
+
+      context.read<SettingsBloc>().add(ChangeMapModeEvent(mapMode));
+      context.read<SettingsBloc>().add(ToggleTrafficEvent(show: traffic));
+      context.read<SettingsBloc>().add(ToggleTransportEvent(show: transport));
     }
   }
 }
