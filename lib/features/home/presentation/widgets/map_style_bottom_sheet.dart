@@ -8,7 +8,7 @@ class _MapStyleBottomSheet extends HookWidget {
     final (mapMode, showTraffic, showTransport) = context.select(
       (SettingsBloc bloc) {
         final state = bloc.state;
-        return (state.mapMode, state.showTraffic, state.showPublicTransport);
+        return (state.mapMode, state.showTraffic, state.showTransport);
       },
     );
 
@@ -16,13 +16,12 @@ class _MapStyleBottomSheet extends HookWidget {
     final checkTraffic = useState(showTraffic);
     final checkTransport = useState(showTransport);
 
-    const images = Assets.images;
-    final styleOptions = <({String title, String path, MapMode mode})>[
-      (title: 'Default', path: images.defaultMode, mode: .none),
-      (title: 'Night', path: images.nightMode, mode: .night),
-      (title: 'Night blue', path: images.nightBlueMode, mode: .nightBlue),
-      (title: 'Uber', path: images.uberMode, mode: .uber),
-      (title: 'Personal', path: images.personalMode, mode: .personal),
+    final styleOptions = <({String title, MapMode mode})>[
+      (title: 'Default', mode: .none),
+      (title: 'Night', mode: .night),
+      (title: 'Night blue', mode: .nightBlue),
+      (title: 'Uber', mode: .uber),
+      (title: 'Personal', mode: .personal),
     ];
 
     return SizedBox(
@@ -70,7 +69,7 @@ class _MapStyleBottomSheet extends HookWidget {
                       for (final item in styleOptions)
                         _MapStyleCard(
                           title: item.title,
-                          imagePath: item.path,
+                          imagePath: item.mode.imagePath,
                           mode: item.mode,
                           isSelected: checkMapMode.value == item.mode,
                           onTap: () => checkMapMode.value = item.mode,
@@ -191,8 +190,6 @@ class _MapStyleCard extends StatelessWidget {
     );
   }
 }
-
-enum OptionSection { traffic, transport }
 
 class _MapOptionsSection extends StatelessWidget {
   const _MapOptionsSection({
