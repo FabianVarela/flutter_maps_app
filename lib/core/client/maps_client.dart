@@ -30,13 +30,14 @@ class MapsClient {
   Future<DirectionInfo?> getDirectionsFromPositions({
     required Position origin,
     required Position destination,
+    required ({bool showTraffic, bool isTransport}) params,
   }) async {
     final directions = GoogleMapsDirections(apiKey: _mapsApiKey);
     final response = await directions.directionsWithLocation(
       Location(lat: origin.lat, lng: origin.lng),
       Location(lat: destination.lat, lng: destination.lng),
-      travelMode: TravelMode.driving,
-      trafficModel: TrafficModel.pessimistic,
+      trafficModel: params.showTraffic ? .pessimistic : .optimistic,
+      travelMode: params.isTransport ? .transit : .driving,
       departureTime: DateTime.now(),
     );
 
