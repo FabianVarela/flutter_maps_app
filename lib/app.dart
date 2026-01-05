@@ -30,7 +30,7 @@ class MapsApp extends StatelessWidget {
             RepositoryProvider(create: (_) => MapsClient()),
           ],
           child: BlocProvider(
-            create: (context) => SingleBloc(
+            create: (context) => SettingsBloc(
               preferences: context.read<Preferences>(),
             ),
             child: MaterialApp(

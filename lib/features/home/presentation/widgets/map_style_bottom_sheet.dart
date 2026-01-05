@@ -5,7 +5,7 @@ class _MapStyleBottomSheet extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentMapMode = context.select<SingleBloc, MapMode>(
+    final currentMapMode = context.select<SettingsBloc, MapMode>(
       (bloc) => bloc.state.mapMode,
     );
     final selectedMapMode = useState(currentMapMode);

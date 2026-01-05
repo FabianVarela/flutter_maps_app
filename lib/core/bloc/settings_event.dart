@@ -1,21 +1,21 @@
 part of 'settings_bloc.dart';
 
-abstract class SingleEvent extends Equatable {
-  const SingleEvent();
+abstract class SettingsEvent extends Equatable {
+  const SettingsEvent();
 
   @override
   List<Object?> get props => [];
 }
 
-class StartPositionStreamEvent extends SingleEvent {
+class StartPositionStreamEvent extends SettingsEvent {
   const StartPositionStreamEvent();
 }
 
-class InitMapModeEvent extends SingleEvent {
+class InitMapModeEvent extends SettingsEvent {
   const InitMapModeEvent();
 }
 
-class ChangeMapModeEvent extends SingleEvent {
+class ChangeMapModeEvent extends SettingsEvent {
   const ChangeMapModeEvent(this.mode);
 
   final MapMode mode;

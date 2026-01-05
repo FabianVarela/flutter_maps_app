@@ -43,14 +43,14 @@ class _MapViewState extends State<MapView> {
   void initState() {
     super.initState();
 
-    context.read<SingleBloc>()
+    context.read<SettingsBloc>()
       ..add(const StartPositionStreamEvent())
       ..add(const InitMapModeEvent());
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<SingleBloc, SingleState>(
+    return BlocListener<SettingsBloc, SettingsState>(
       listenWhen: (_, current) => current.position != null,
       listener: (_, state) => context.read<MapBloc>().add(
         SetOriginMarkerEvent(
@@ -59,7 +59,7 @@ class _MapViewState extends State<MapView> {
         ),
       ),
       child: Scaffold(
-        body: BlocBuilder<SingleBloc, SingleState>(
+        body: BlocBuilder<SettingsBloc, SettingsState>(
           builder: (_, state) {
             final size = MediaQuery.sizeOf(context);
             if (state.position != null) {
@@ -112,7 +112,7 @@ class _MapViewState extends State<MapView> {
             }
           },
         ),
-        floatingActionButton: BlocSelector<SingleBloc, SingleState, bool>(
+        floatingActionButton: BlocSelector<SettingsBloc, SettingsState, bool>(
           selector: (state) => state.position != null,
           builder: (_, state) => switch (state) {
             false => const Offstage(),

@@ -9,8 +9,8 @@ part 'settings_event.dart';
 
 part 'settings_state.dart';
 
-class SingleBloc extends Bloc<SingleEvent, SingleState> {
-  SingleBloc({required this.preferences}) : super(SingleState.initial()) {
+class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
+  SettingsBloc({required this.preferences}) : super(SettingsState.initial()) {
     on<StartPositionStreamEvent>(_onStartPositionStream);
     on<InitMapModeEvent>(_onInitMapMode);
     on<ChangeMapModeEvent>(_onChangeMapMode);
@@ -25,7 +25,7 @@ class SingleBloc extends Bloc<SingleEvent, SingleState> {
 
   Future<void> _onStartPositionStream(
     StartPositionStreamEvent event,
-    Emitter<SingleState> emit,
+    Emitter<SettingsState> emit,
   ) async {
     emit(state.copyWith(isLoadingPosition: true, clearError: true));
 
@@ -56,7 +56,7 @@ class SingleBloc extends Bloc<SingleEvent, SingleState> {
 
   Future<void> _onInitMapMode(
     InitMapModeEvent event,
-    Emitter<SingleState> emit,
+    Emitter<SettingsState> emit,
   ) async {
     final mapMode = preferences.getMapMode();
     if (mapMode == null || mapMode.isEmpty) return;
@@ -90,7 +90,7 @@ class SingleBloc extends Bloc<SingleEvent, SingleState> {
 
   Future<void> _onChangeMapMode(
     ChangeMapModeEvent event,
-    Emitter<SingleState> emit,
+    Emitter<SettingsState> emit,
   ) async {
     emit(state.copyWith(isLoadingMapMode: true, clearError: true));
 

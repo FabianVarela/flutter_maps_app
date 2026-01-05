@@ -16,7 +16,7 @@ class MapWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mapModeStyle = context.select<SingleBloc, String>(
+    final mapModeStyle = context.select<SettingsBloc, String>(
       (bloc) => bloc.state.mapModeStyle,
     );
 
@@ -154,7 +154,7 @@ class MapWidget extends StatelessWidget {
     );
 
     if (result != null && context.mounted) {
-      context.read<SingleBloc>().add(ChangeMapModeEvent(result));
+      context.read<SettingsBloc>().add(ChangeMapModeEvent(result));
     }
   }
 }

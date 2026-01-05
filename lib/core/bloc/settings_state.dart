@@ -1,7 +1,7 @@
 part of 'settings_bloc.dart';
 
-class SingleState extends Equatable {
-  const SingleState({
+class SettingsState extends Equatable {
+  const SettingsState({
     this.position,
     this.mapMode = MapMode.none,
     this.mapModeStyle = '',
@@ -10,7 +10,7 @@ class SingleState extends Equatable {
     this.errorMessage,
   });
 
-  factory SingleState.initial() => const SingleState();
+  factory SettingsState.initial() => const SettingsState();
 
   final Position? position;
   final MapMode mapMode;
@@ -19,7 +19,7 @@ class SingleState extends Equatable {
   final bool isLoadingMapMode;
   final String? errorMessage;
 
-  SingleState copyWith({
+  SettingsState copyWith({
     Position? position,
     MapMode? mapMode,
     String? mapModeStyle,
@@ -28,7 +28,7 @@ class SingleState extends Equatable {
     String? errorMessage,
     bool clearError = false,
   }) {
-    return SingleState(
+    return SettingsState(
       position: position ?? this.position,
       mapMode: mapMode ?? this.mapMode,
       mapModeStyle: mapModeStyle ?? this.mapModeStyle,

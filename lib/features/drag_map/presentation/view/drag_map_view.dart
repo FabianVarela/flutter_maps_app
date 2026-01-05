@@ -51,7 +51,7 @@ class _DragMapViewState extends State<DragMapView> {
 
   @override
   Widget build(BuildContext context) {
-    final mapModeStyle = context.select<SingleBloc, String>(
+    final mapModeStyle = context.select<SettingsBloc, String>(
       (bloc) => bloc.state.mapModeStyle,
     );
 
