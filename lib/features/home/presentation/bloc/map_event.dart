@@ -37,14 +37,16 @@ class SetPolylineEvent extends MapEvent {
     required this.origin,
     required this.destination,
     required this.polylineColor,
+    required this.optionParams,
   });
 
   final Position origin;
   final Position destination;
   final Color polylineColor;
+  final ({bool showTraffic, bool isTransport}) optionParams;
 
   @override
-  List<Object?> get props => [origin, destination, polylineColor];
+  List<Object?> get props => [origin, destination, polylineColor, optionParams];
 }
 
 class ClearMapEvent extends MapEvent {

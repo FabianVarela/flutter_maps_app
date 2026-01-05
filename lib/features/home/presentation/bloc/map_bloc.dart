@@ -76,6 +76,10 @@ class MapBloc extends Bloc<MapEvent, MapState> {
       final direction = await mapsClient.getDirectionsFromPositions(
         origin: event.origin,
         destination: event.destination,
+        params: (
+          showTraffic: event.optionParams.showTraffic,
+          isTransport: event.optionParams.isTransport,
+        ),
       );
 
       if (direction == null) {
