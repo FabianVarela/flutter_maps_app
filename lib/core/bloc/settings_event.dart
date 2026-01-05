@@ -23,3 +23,21 @@ class ChangeMapModeEvent extends SettingsEvent {
   @override
   List<Object?> get props => [mode];
 }
+
+class ToggleTrafficEvent extends SettingsEvent {
+  const ToggleTrafficEvent({required this.show});
+
+  final bool show;
+
+  @override
+  List<Object?> get props => [show];
+}
+
+class ToggleTransportEvent extends SettingsEvent {
+  const ToggleTransportEvent({required this.show});
+
+  final bool show;
+
+  @override
+  List<Object?> get props => [show];
+}

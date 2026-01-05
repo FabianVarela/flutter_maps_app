@@ -14,6 +14,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<StartPositionStreamEvent>(_onStartPositionStream);
     on<InitMapModeEvent>(_onInitMapMode);
     on<ChangeMapModeEvent>(_onChangeMapMode);
+    on<ToggleTrafficEvent>(_onToggleTraffic);
+    on<ToggleTransportEvent>(_onToggleTransport);
   }
 
   final Preferences preferences;
@@ -118,6 +120,15 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       );
     }
   }
+
+  void _onToggleTraffic(ToggleTrafficEvent event, Emitter<SettingsState> emit) {
+    emit(state.copyWith(showTraffic: event.show));
+  }
+
+  void _onToggleTransport(
+    ToggleTransportEvent event,
+    Emitter<SettingsState> emit,
+  ) => emit(state.copyWith(showPublicTransport: event.show));
 
   Future<void> _setupPermissions() async {
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
