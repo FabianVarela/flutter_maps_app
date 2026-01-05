@@ -54,8 +54,9 @@ class DragMapBloc extends Bloc<DragMapEvent, DragMapState> {
     emit(state.copyWith(isLoadingAddress: true, clearError: true));
 
     try {
-      final positionParams = (lat: event.lat, lng: event.lng);
-      final address = await mapsClient.getAddressFromPosition(positionParams);
+      final address = await mapsClient.getAddressFromPosition(
+        position: (lat: event.lat, lng: event.lng),
+      );
 
       emit(
         state.copyWith(

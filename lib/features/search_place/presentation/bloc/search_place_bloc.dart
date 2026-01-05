@@ -31,7 +31,10 @@ class SearchPlaceBloc extends Bloc<SearchPlaceEvent, SearchPlaceState> {
     emit(state.copyWith(isLoading: true, clearError: true));
 
     try {
-      final places = await mapsClient.searchPlace(event.query, event.position);
+      final places = await mapsClient.searchPlace(
+        value: event.query,
+        position: event.position,
+      );
       emit(state.copyWith(places: places, isLoading: false, clearError: true));
     } catch (error) {
       emit(

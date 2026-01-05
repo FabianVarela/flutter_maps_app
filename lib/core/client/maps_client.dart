@@ -14,10 +14,10 @@ typedef DirectionInfo = ({
 class MapsClient {
   static const _mapsApiKey = String.fromEnvironment('GOOGLE_MAPS_API_KEY');
 
-  Future<List<PlacesSearchResult>> searchPlace(
-    String value,
-    Position position,
-  ) async {
+  Future<List<PlacesSearchResult>> searchPlace({
+    required String value,
+    required Position position,
+  }) async {
     final places = GoogleMapsPlaces(apiKey: _mapsApiKey);
     final result = await places.searchByText(
       value,
@@ -27,10 +27,10 @@ class MapsClient {
     return result.status == 'OK' ? result.results : <PlacesSearchResult>[];
   }
 
-  Future<DirectionInfo?> getDirectionsFromPositions(
-    Position origin,
-    Position destination,
-  ) async {
+  Future<DirectionInfo?> getDirectionsFromPositions({
+    required Position origin,
+    required Position destination,
+  }) async {
     final directions = GoogleMapsDirections(apiKey: _mapsApiKey);
     final response = await directions.directionsWithLocation(
       Location(lat: origin.lat, lng: origin.lng),
@@ -49,7 +49,7 @@ class MapsClient {
     );
   }
 
-  Future<String?> getAddressFromPosition(Position position) async {
+  Future<String?> getAddressFromPosition({required Position position}) async {
     final geoCoding = GoogleMapsGeocoding(apiKey: _mapsApiKey);
     final response = await geoCoding.searchByLocation(
       Location(lat: position.lat, lng: position.lng),
