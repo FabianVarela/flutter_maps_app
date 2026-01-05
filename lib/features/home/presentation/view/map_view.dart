@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_maps_app/core/bloc/settings_bloc.dart';
 import 'package:flutter_maps_app/core/client/maps_client.dart';
-import 'package:flutter_maps_app/core/gen/assets.gen.dart';
 import 'package:flutter_maps_app/core/model/map_models.dart';
 import 'package:flutter_maps_app/features/home/presentation/bloc/map_bloc.dart';
 import 'package:flutter_maps_app/features/search_place/presentation/view/search_place_view.dart';
@@ -159,11 +158,17 @@ class _MapViewState extends State<MapView> {
     if (state.origin == null || state.destination == null) return;
 
     _isRouteActivated = true;
+    final settingState = context.read<SettingsBloc>().state;
+
     context.read<MapBloc>().add(
       SetPolylineEvent(
         origin: (lat: state.origin!.lat, lng: state.origin!.lng),
         destination: (lat: state.destination!.lat, lng: state.destination!.lng),
         polylineColor: Colors.blue,
+        optionParams: (
+          showTraffic: settingState.showTraffic,
+          isTransport: settingState.showTransport,
+        ),
       ),
     );
   }
