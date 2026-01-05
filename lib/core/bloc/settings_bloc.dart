@@ -67,6 +67,7 @@ class SingleBloc extends Bloc<SingleEvent, SingleState> {
       final currentMapMode = MapMode.values.byName(mapMode);
       emit(
         state.copyWith(
+          mapMode: currentMapMode,
           mapModeStyle: switch (currentMapMode.filePath.isEmpty) {
             true => '',
             false => await rootBundle.loadString(currentMapMode.filePath),
@@ -78,6 +79,7 @@ class SingleBloc extends Bloc<SingleEvent, SingleState> {
     } on Exception catch (_) {
       emit(
         state.copyWith(
+          mapMode: MapMode.none,
           mapModeStyle: '',
           isLoadingMapMode: false,
           clearError: true,
@@ -96,6 +98,7 @@ class SingleBloc extends Bloc<SingleEvent, SingleState> {
       await preferences.saveMapMode(event.mode.name);
       emit(
         state.copyWith(
+          mapMode: event.mode,
           mapModeStyle: switch (event.mode.filePath.isEmpty) {
             true => '',
             false => await rootBundle.loadString(event.mode.filePath),
@@ -107,6 +110,7 @@ class SingleBloc extends Bloc<SingleEvent, SingleState> {
     } on Exception catch (error) {
       emit(
         state.copyWith(
+          mapMode: MapMode.none,
           mapModeStyle: '',
           isLoadingMapMode: false,
           errorMessage: 'Failed to change map mode: $error',
