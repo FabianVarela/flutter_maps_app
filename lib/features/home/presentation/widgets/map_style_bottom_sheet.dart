@@ -61,29 +61,35 @@ class _MapStyleBottomSheet extends HookWidget {
               ],
             ),
             Expanded(
-              child: GridView.count(
-                crossAxisCount: 2,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: .85,
-                children: <Widget>[
-                  for (final item in styleOptions)
-                    _MapStyleCard(
-                      title: item.title,
-                      imagePath: item.path,
-                      mode: MapMode.none,
-                      isSelected: checkMapMode.value == item.mode,
-                      onTap: () => checkMapMode.value = item.mode,
+              child: CustomScrollView(
+                slivers: <Widget>[
+                  SliverGrid.count(
+                    crossAxisCount: 2,
+                    childAspectRatio: .85,
+                    children: <Widget>[
+                      for (final item in styleOptions)
+                        _MapStyleCard(
+                          title: item.title,
+                          imagePath: item.path,
+                          mode: item.mode,
+                          isSelected: checkMapMode.value == item.mode,
+                          onTap: () => checkMapMode.value = item.mode,
+                        ),
+                    ],
+                  ),
+                  const SliverToBoxAdapter(
+                    child: Divider(color: Colors.white54),
+                  ),
+                  SliverToBoxAdapter(
+                    child: _MapOptionsSection(
+                      showTraffic: checkTraffic.value,
+                      showTransport: checkTransport.value,
+                      onTrafficChanged: (val) => checkTraffic.value = val,
+                      onTransportChanged: (val) => checkTransport.value = val,
                     ),
+                  ),
                 ],
               ),
-            ),
-            const Divider(color: Colors.white12, height: 1),
-            _MapOptionsSection(
-              showTraffic: checkTraffic.value,
-              showTransport: checkTransport.value,
-              onTrafficChanged: (value) => checkTraffic.value = value,
-              onTransportChanged: (value) => checkTransport.value = value,
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(
