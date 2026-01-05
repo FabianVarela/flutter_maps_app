@@ -32,22 +32,26 @@ class MapsClient {
     required Position destination,
     required ({bool showTraffic, bool isTransport}) params,
   }) async {
-    final directions = GoogleMapsDirections(apiKey: _mapsApiKey);
-    final response = await directions.directionsWithLocation(
-      Location(lat: origin.lat, lng: origin.lng),
-      Location(lat: destination.lat, lng: destination.lng),
-      trafficModel: params.showTraffic ? .pessimistic : .optimistic,
-      travelMode: params.isTransport ? .transit : .driving,
-      departureTime: DateTime.now(),
-    );
+    try {
+      final directions = GoogleMapsDirections(apiKey: _mapsApiKey);
+      final response = await directions.directionsWithLocation(
+        Location(lat: origin.lat, lng: origin.lng),
+        Location(lat: destination.lat, lng: destination.lng),
+        trafficModel: params.showTraffic ? .pessimistic : .optimistic,
+        travelMode: params.isTransport ? .transit : .driving,
+        departureTime: DateTime.now(),
+      );
 
-    if (!response.isOkay || response.routes.isEmpty) return null;
-    return (
-      steps: response.routes.first.legs.first.steps,
-      eta: response.routes.first.legs.first.duration.text,
-      km: response.routes.first.legs.first.distance.text,
-      bounds: response.routes.first.bounds,
-    );
+      if (!response.isOkay || response.routes.isEmpty) return null;
+      return (
+        steps: response.routes.first.legs.first.steps,
+        eta: response.routes.first.legs.first.duration.text,
+        km: response.routes.first.legs.first.distance.text,
+        bounds: response.routes.first.bounds,
+      );
+    } on Exception catch (_) {
+      return null;
+    }
   }
 
   Future<String?> getAddressFromPosition({required Position position}) async {
