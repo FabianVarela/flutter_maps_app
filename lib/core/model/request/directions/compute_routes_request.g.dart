@@ -23,7 +23,8 @@ Map<String, dynamic> _$RouteLocationToJson(RouteLocation instance) =>
 Map<String, dynamic> _$LocationWrapperToJson(LocationWrapper instance) =>
     <String, dynamic>{'latLng': instance.latLng};
 
-Map<String, dynamic> _$LatLngToJson(LatLng instance) => <String, dynamic>{
-  'latitude': instance.latitude,
-  'longitude': instance.longitude,
-};
+Map<String, dynamic> _$LocationLatLngToJson(LocationLatLng instance) =>
+    <String, dynamic>{
+      'latitude': instance.latitude,
+      'longitude': instance.longitude,
+    };

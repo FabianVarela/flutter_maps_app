@@ -36,17 +36,17 @@ class RouteLocation {
 class LocationWrapper {
   LocationWrapper({required this.latLng});
 
-  final LatLng latLng;
+  final LocationLatLng latLng;
 
   Map<String, dynamic> toJson() => _$LocationWrapperToJson(this);
 }
 
 @JsonSerializable(createFactory: false)
-class LatLng {
-  LatLng({required this.latitude, required this.longitude});
+class LocationLatLng {
+  LocationLatLng({required this.latitude, required this.longitude});
 
   final double latitude;
   final double longitude;
 
-  Map<String, dynamic> toJson() => _$LatLngToJson(this);
+  Map<String, dynamic> toJson() => _$LocationLatLngToJson(this);
 }
