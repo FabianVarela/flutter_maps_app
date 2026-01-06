@@ -9,12 +9,12 @@ class SearchPlaceState extends Equatable {
 
   factory SearchPlaceState.initial() => const SearchPlaceState();
 
-  final List<PlacesSearchResult> places;
+  final List<PlaceSearchResult> places;
   final bool isLoading;
   final String? errorMessage;
 
   SearchPlaceState copyWith({
-    List<PlacesSearchResult>? places,
+    List<PlaceSearchResult>? places,
     bool? isLoading,
     String? errorMessage,
     bool clearError = false,

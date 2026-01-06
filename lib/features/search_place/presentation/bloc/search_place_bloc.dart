@@ -1,7 +1,8 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_maps_app/core/client/maps_client.dart';
-import 'package:google_maps_webservice/places.dart';
+import 'package:flutter_maps_app/core/model/request/places/search_place_request.dart';
+import 'package:flutter_maps_app/core/model/response/places/place_search_result.dart';
 import 'package:stream_transform/stream_transform.dart';
 
 part 'search_place_event.dart';
@@ -31,9 +32,17 @@ class SearchPlaceBloc extends Bloc<SearchPlaceEvent, SearchPlaceState> {
     emit(state.copyWith(isLoading: true, clearError: true));
 
     try {
+      final position = event.position;
       final places = await mapsClient.searchPlace(
-        value: event.query,
-        position: event.position,
+        request: SearchPlaceRequest(
+          textQuery: event.query,
+          locationBias: LocationBias(
+            circle: Circle(
+              center: Center(latitude: position.lat, longitude: position.lng),
+              radius: 10000,
+            ),
+          ),
+        ),
       );
       emit(state.copyWith(places: places, isLoading: false, clearError: true));
     } catch (error) {
