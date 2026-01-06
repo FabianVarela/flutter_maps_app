@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_maps_app/core/gen/assets.gen.dart';
-import 'package:google_maps_webservice/directions.dart';
+import 'package:flutter_maps_app/core/model/response/directions/compute_routes_response.dart';
 
 enum OptionSection { traffic, transport }
 
@@ -9,7 +9,7 @@ enum MapMode { night, nightBlue, personal, uber, none }
 class RouteData extends Equatable {
   const RouteData({required this.bounds, required this.km, required this.eta});
 
-  final Bounds bounds;
+  final DirectionBounds bounds;
   final String km;
   final String eta;
 
