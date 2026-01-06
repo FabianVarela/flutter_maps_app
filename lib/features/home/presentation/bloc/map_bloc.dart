@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_maps_app/core/client/maps_client.dart';
 import 'package:flutter_maps_app/core/model/map_models.dart';
+import 'package:flutter_maps_app/core/model/request/directions/compute_routes_request.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 part 'map_event.dart';
@@ -73,13 +74,33 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     emit(state.copyWith(isLoadingRoute: true, clearError: true));
 
     try {
-      final direction = await mapsClient.getDirectionsFromPositions(
-        origin: event.origin,
-        destination: event.destination,
-        params: (
-          showTraffic: event.optionParams.showTraffic,
-          isTransport: event.optionParams.isTransport,
+      final request = ComputeRoutesRequest(
+        origin: RouteLocation(
+          location: LocationWrapper(
+            latLng: LocationLatLng(
+              latitude: event.origin.lat,
+              longitude: event.origin.lng,
+            ),
+          ),
         ),
+        destination: RouteLocation(
+          location: LocationWrapper(
+            latLng: LocationLatLng(
+              latitude: event.destination.lat,
+              longitude: event.destination.lng,
+            ),
+          ),
+        ),
+        travelMode: event.optionParams.isTransport ? 'TRANSIT' : 'DRIVE',
+        routingPreference: event.optionParams.showTraffic
+            ? 'TRAFFIC_AWARE'
+            : 'TRAFFIC_UNAWARE',
+        computeAlternativeRoutes: false,
+        units: 'METRIC',
+      );
+
+      final direction = await mapsClient.getDirectionsFromPositions(
+        request: request,
       );
 
       if (direction == null) {
@@ -94,7 +115,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
 
       final pointList = <LatLng>[];
       for (final step in direction.steps) {
-        _decodePolyLine(step.polyline.points).forEach(pointList.add);
+        _decodePolyLine(step.points).forEach(pointList.add);
       }
 
       const polylineId = PolylineId('polyline');

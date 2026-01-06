@@ -4,10 +4,10 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_maps_app/core/bloc/settings_bloc.dart';
 import 'package:flutter_maps_app/core/client/maps_client.dart';
 import 'package:flutter_maps_app/core/model/map_models.dart';
+import 'package:flutter_maps_app/core/model/response/directions/compute_routes_response.dart';
 import 'package:flutter_maps_app/features/home/presentation/bloc/map_bloc.dart';
 import 'package:flutter_maps_app/features/search_place/presentation/view/search_place_view.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_maps_webservice/directions.dart' as directions;
 
 part '../widgets/map_widget.dart';
 
@@ -173,7 +173,7 @@ class _MapViewState extends State<MapView> {
     );
   }
 
-  void _setFixCamera(directions.Bounds bounds) {
+  void _setFixCamera(DirectionBounds bounds) {
     _googleMapController?.animateCamera(
       CameraUpdate.newLatLngBounds(
         LatLngBounds(
