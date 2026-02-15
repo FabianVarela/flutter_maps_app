@@ -27,7 +27,6 @@ Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
   };
 
   Bloc.observer = const AppBlocObserver();
-
   WidgetsFlutterBinding.ensureInitialized();
 
   const mapsApiKey = String.fromEnvironment('GOOGLE_MAPS_API_KEY');
