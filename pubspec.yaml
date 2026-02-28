@@ -18,7 +18,7 @@ dependencies:
   geolocator: ^14.0.2
   google_maps_flutter: ^2.14.2
   http: ^1.6.0
-  json_annotation: ^4.10.0
+  json_annotation: ^4.11.0
   shared_preferences: ^2.5.4
   stream_transform: ^2.1.1
   web: ^1.1.1
@@ -30,8 +30,8 @@ dev_dependencies:
   flutter_native_splash: ^2.4.7
   flutter_test:
     sdk: flutter
-  json_serializable: ^6.12.0
-  very_good_analysis: ^10.1.0
+  json_serializable: ^6.13.0
+  very_good_analysis: ^10.2.0
 
 flutter_gen:
   output: lib/core/gen/
