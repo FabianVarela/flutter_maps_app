@@ -4,11 +4,11 @@ description: Create an application using google Maps and BLoC in Flutter
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.11.0
-  flutter: ^3.41.0
+  sdk: ^3.12.0
+  flutter: ^3.44.0
 
 dependencies:
-  bloc: ^9.2.0
+  bloc: ^9.2.1
   bloc_concurrency: ^0.3.0
   equatable: ^2.0.8
   flutter:
@@ -18,7 +18,7 @@ dependencies:
   geolocator: ^14.0.2
   google_maps_flutter: ^2.17.0
   http: ^1.6.0
-  json_annotation: ^4.11.0
+  json_annotation: ^4.12.0
   shared_preferences: ^2.5.5
   stream_transform: ^2.1.1
   web: ^1.1.1
@@ -30,7 +30,7 @@ dev_dependencies:
   flutter_native_splash: ^2.4.7
   flutter_test:
     sdk: flutter
-  json_serializable: ^6.13.2
+  json_serializable: ^6.14.0
   very_good_analysis: ^10.2.0
 
 flutter_gen:
