@@ -39,7 +39,7 @@ android {
 
     sourceSets {
         getByName("main") {
-            kotlin.srcDirs("src/main/kotlin")
+            kotlin.directories.add("src/main/kotlin")
         }
     }
 
@@ -68,5 +68,5 @@ kotlin {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.3.10")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.3.21")
 }
