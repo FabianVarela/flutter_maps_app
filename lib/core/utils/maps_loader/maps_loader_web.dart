@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:js_interop';
+
 import 'package:flutter/foundation.dart';
 import 'package:web/web.dart';
 
@@ -10,7 +11,7 @@ class MapsLoader {
     final uri = Uri.https(
       'maps.googleapis.com',
       '/maps/api/js',
-      {'key': apiKey, 'libraries': 'places', 'loading': 'async'},
+      {'key': apiKey, 'libraries': 'drawing,marker,places', 'loading': 'async'},
     );
 
     final completer = Completer<void>();

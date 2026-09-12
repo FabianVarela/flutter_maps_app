@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_maps_app/core/client/maps_client.dart';
@@ -6,6 +5,7 @@ import 'package:flutter_maps_app/core/model/map_models.dart';
 import 'package:flutter_maps_app/core/model/response/places/place_search_result.dart';
 import 'package:flutter_maps_app/features/drag_map/presentation/view/drag_map_view.dart';
 import 'package:flutter_maps_app/features/search_place/presentation/bloc/search_place_bloc.dart';
+import 'package:material_ui/material_ui.dart';
 
 class SearchPlacePage extends StatelessWidget {
   const SearchPlacePage({required this.lat, required this.lng, super.key});

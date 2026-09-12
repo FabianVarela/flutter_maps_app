@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_maps_app/core/bloc/settings_bloc.dart';
 import 'package:flutter_maps_app/core/client/maps_client.dart';
 import 'package:flutter_maps_app/core/client/preferences.dart';
 import 'package:flutter_maps_app/features/home/presentation/view/map_view.dart';
 import 'package:http/http.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MapsApp extends StatelessWidget {

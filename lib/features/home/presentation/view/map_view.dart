@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_maps_app/core/bloc/settings_bloc.dart';
@@ -8,12 +7,13 @@ import 'package:flutter_maps_app/core/model/response/directions/compute_routes_r
 import 'package:flutter_maps_app/features/home/presentation/bloc/map_bloc.dart';
 import 'package:flutter_maps_app/features/search_place/presentation/view/search_place_view.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
-part '../widgets/map_widget.dart';
+import 'package:material_ui/material_ui.dart';
 
 part '../widgets/map_destination.dart';
 
 part '../widgets/map_style_bottom_sheet.dart';
+
+part '../widgets/map_widget.dart';
 
 class MapPage extends StatelessWidget {
   const MapPage({super.key});

@@ -151,8 +151,12 @@ class MapBloc extends Bloc<MapEvent, MapState> {
   }
 
   void _onClearMap(ClearMapEvent event, Emitter<MapState> emit) {
+    final updatedMarkers = Map<MarkerId, Marker>.from(state.markers)
+      ..remove(const MarkerId('Destination location'));
+
     emit(
       state.copyWith(
+        markers: updatedMarkers,
         polylines: <PolylineId, Polyline>{},
         clearRouteData: true,
         clearError: true,
@@ -171,27 +175,27 @@ class MapBloc extends Bloc<MapEvent, MapState> {
 
     while (index < len) {
       int b;
-      var shift = 0;
+      var factor = 1;
       var result = 0;
 
       do {
         b = encoded.codeUnitAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
+        result += (b & 0x1f) * factor;
+        factor *= 32;
       } while (b >= 0x20);
 
-      final dLat = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
+      final dLat = (result & 1) != 0 ? -(result ~/ 2) - 1 : result ~/ 2;
       lat += dLat;
-      shift = 0;
+      factor = 1;
       result = 0;
 
       do {
         b = encoded.codeUnitAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
+        result += (b & 0x1f) * factor;
+        factor *= 32;
       } while (b >= 0x20);
 
-      final dLng = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
+      final dLng = (result & 1) != 0 ? -(result ~/ 2) - 1 : result ~/ 2;
       lng += dLng;
 
       final p = LatLng(lat.toDouble() / 1E5, lng.toDouble() / 1E5);

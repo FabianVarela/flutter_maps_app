@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_maps_app/core/utils/maps_loader/maps_loader.dart';
+import 'package:material_ui/material_ui.dart';
 
 class AppBlocObserver extends BlocObserver {
   const AppBlocObserver();

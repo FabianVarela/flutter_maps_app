@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_maps_app/core/bloc/settings_bloc.dart';
 import 'package:flutter_maps_app/core/client/maps_client.dart';
 import 'package:flutter_maps_app/features/drag_map/presentation/bloc/drag_map_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:material_ui/material_ui.dart';
 
 part '../widgets/address_section.dart';
 
